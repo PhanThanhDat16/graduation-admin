@@ -1,18 +1,58 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import MainLayout from '../layouts'
-import { HOME_PAGE } from '../constants'
+import {
+  CHAT_PAGE,
+  CONTRACT_PAGE,
+  CUSTOMER_PAGE,
+  DISPUTE_PAGE,
+  HOME_PAGE,
+  NOTIFICATION_PAGE,
+  POST_PAGE,
+  PROFILE_PAGE,
+  PROJECT_PAGE,
+  SETTING_PAGE,
+  STAFF_PAGE,
+  TRANSACTION_PAGE,
+  WALLET_PAGE
+} from '../constants'
 import NotFoundPage from '../pages/NotFoundPage'
 import PrivateRoute from './PrivateRoute'
 import PrivateRouteLogin from './PrivateRouteLogin'
 import HomePage from '../pages/HomePage'
+import ProjectPage from '../pages/ProjectPage'
+import ContractPage from '../pages/ContractPage'
+import CustomerPage from '../pages/CustomerPage'
+import TransactionPage from '../pages/TransactionPage'
+import DisputePage from '../pages/DisputePage'
+import StaffPage from '../pages/StaffPage'
+import WalletPage from '../pages/WalletPage'
+import PostPage from '../pages/PostPage'
+import ChatPage from '../pages/ChatPage'
+import NotificationPage from '../pages/Notification'
+import SettingPage from '../pages/SettingPage'
+import ProfilePage from '../pages/ProfilePage'
 
 const AppRouters = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<PrivateRoute />}>
-          <Route path={HOME_PAGE} element={<MainLayout />}>
+          <Route path={`/`} element={<MainLayout />}>
             <Route index element={<HomePage />} />
+            <Route path={HOME_PAGE} element={<HomePage />} />
+            <Route path={PROJECT_PAGE} element={<ProjectPage />} />
+            <Route path={CONTRACT_PAGE} element={<ContractPage />} />
+            <Route path={CUSTOMER_PAGE} element={<CustomerPage />} />
+            <Route path={TRANSACTION_PAGE} element={<TransactionPage />} />
+            <Route path={DISPUTE_PAGE} element={<DisputePage />} />
+            <Route path={POST_PAGE} element={<PostPage />} />
+            <Route path={STAFF_PAGE} element={<StaffPage />} />
+            <Route path={WALLET_PAGE} element={<WalletPage />} />
+            <Route path={CHAT_PAGE} element={<ChatPage />} />
+            <Route path={NOTIFICATION_PAGE} element={<NotificationPage />} />
+            <Route path={SETTING_PAGE} element={<SettingPage />} />
+            <Route path={PROFILE_PAGE} element={<ProfilePage />} />
+
             {/* main page */}
           </Route>
         </Route>
