@@ -6,6 +6,7 @@ import {
   CUSTOMER_PAGE,
   DISPUTE_PAGE,
   HOME_PAGE,
+  LOGIN_PAGE,
   NOTIFICATION_PAGE,
   POST_PAGE,
   PROFILE_PAGE,
@@ -31,6 +32,7 @@ import ChatPage from '../pages/ChatPage'
 import NotificationPage from '../pages/Notification'
 import SettingPage from '../pages/SettingPage'
 import ProfilePage from '../pages/ProfilePage'
+import LoginPage from '@/pages/LoginPage'
 
 const AppRouters = () => {
   return (
@@ -57,7 +59,10 @@ const AppRouters = () => {
           </Route>
         </Route>
 
-        <Route element={<PrivateRouteLogin />}>{/* login and register page */}</Route>
+        <Route element={<PrivateRouteLogin />}>
+          <Route path={LOGIN_PAGE} element={<LoginPage />} />
+          {/* login page */}
+        </Route>
         <Route path="*" element={<NotFoundPage />}></Route>
       </Routes>
     </BrowserRouter>

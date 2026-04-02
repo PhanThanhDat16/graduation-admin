@@ -15,6 +15,7 @@ import { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ThemeContext } from '../../contexts/ThemeContext'
 import { Header } from 'antd/es/layout/layout'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const { useToken } = theme
 
@@ -25,7 +26,17 @@ type Props = {
 
 const AppHeader = ({ collapsed, onToggle }: Props) => {
   const { isDark, toggleTheme } = useContext(ThemeContext)
-  const navigate = useNavigate()
+  const { logOut } = useAuthStore()
+  const nav = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await logOut()
+      nav('/login')
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   const items = [
     {
@@ -49,10 +60,10 @@ const AppHeader = ({ collapsed, onToggle }: Props) => {
 
   const onAvatarMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (key === 'logout') {
-      // TODO: gọi API đăng xuất / xóa token
+      handleLogout()
       return
     }
-    navigate(`/${key}`)
+    nav(`/${key}`)
   }
 
   return (
@@ -75,7 +86,7 @@ const AppHeader = ({ collapsed, onToggle }: Props) => {
         <Button type="text" className="text-lg" size="large">
           <BellOutlined
             onClick={() => {
-              navigate('/notification')
+              nav('/notification')
             }}
           />
         </Button>

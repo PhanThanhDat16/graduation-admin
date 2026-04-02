@@ -52,7 +52,7 @@ const ProfilePage = () => {
       <Card>
         <Row gutter={[24, 24]}>
           <Col xs={24} md={8} style={{ textAlign: 'center' }}>
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <Space vertical size="middle" style={{ width: '100%' }}>
               <Avatar size={112} icon={<UserOutlined />} />
               <Upload accept="image/*" showUploadList={false} beforeUpload={handleAvatarBeforeUpload}>
                 <Button icon={<CameraOutlined />}>Đổi ảnh đại diện</Button>
