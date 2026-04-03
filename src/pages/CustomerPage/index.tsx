@@ -77,7 +77,7 @@ const CustomerPage = () => {
   )
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }}>
       <div>
         <Title level={3} style={{ margin: 0 }}>
           Khách hàng &amp; nhà thầu

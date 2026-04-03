@@ -17,7 +17,7 @@ export const MOCK_ADMIN_PROFILE: MockAdminProfile = {
   email: 'vana.nguyen@admin.internal',
   phone: '0907123456',
   employeeCode: 'NV-ADM-014',
-  role: 'moderator',
+  role: 'admin',
   department: 'Vận hành & Kiểm duyệt',
   joinedAt: '2024-01-15T08:30:00+07:00',
   lastLoginAt: '2025-03-20T08:02:00+07:00'

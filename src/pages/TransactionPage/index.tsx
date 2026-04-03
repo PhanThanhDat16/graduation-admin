@@ -107,7 +107,7 @@ const TransactionPage = () => {
   )
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }}>
       <div>
         <Title level={3} style={{ margin: 0 }}>
           Giao dịch dự án
@@ -118,7 +118,7 @@ const TransactionPage = () => {
       <Alert
         type="info"
         showIcon
-        message="Phạm vi hiển thị"
+        title="Phạm vi hiển thị"
         description={
           <span>
             Trang này chỉ liệt kê giao dịch liên quan đến <strong>dự án / hợp đồng</strong>. Giao dịch{' '}

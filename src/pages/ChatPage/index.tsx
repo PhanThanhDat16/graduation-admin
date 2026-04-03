@@ -22,7 +22,7 @@ const ChatPage = () => {
   }, [search])
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }}>
       <div>
         <Title level={3} style={{ margin: 0 }}>
           Hội thoại
@@ -80,7 +80,6 @@ const ChatPage = () => {
         open={!!detail}
         onClose={() => setDetail(null)}
         title={detail ? `Hội thoại: ${detail.projectCode}` : 'Chi tiết'}
-        width={480}
       >
         {detail && (
           <Descriptions column={1} bordered size="small">

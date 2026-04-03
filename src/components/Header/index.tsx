@@ -15,6 +15,7 @@ import { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ThemeContext } from '../../contexts/ThemeContext'
 import { Header } from 'antd/es/layout/layout'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const { useToken } = theme
 
@@ -25,7 +26,17 @@ type Props = {
 
 const AppHeader = ({ collapsed, onToggle }: Props) => {
   const { isDark, toggleTheme } = useContext(ThemeContext)
-  const navigate = useNavigate()
+  const { logOut, user } = useAuthStore()
+  const nav = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await logOut()
+      nav('/login')
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   const items = [
     {
@@ -49,10 +60,10 @@ const AppHeader = ({ collapsed, onToggle }: Props) => {
 
   const onAvatarMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (key === 'logout') {
-      // TODO: gọi API đăng xuất / xóa token
+      handleLogout()
       return
     }
-    navigate(`/${key}`)
+    nav(`/${key}`)
   }
 
   return (
@@ -75,15 +86,15 @@ const AppHeader = ({ collapsed, onToggle }: Props) => {
         <Button type="text" className="text-lg" size="large">
           <BellOutlined
             onClick={() => {
-              navigate('/notification')
+              nav('/notification')
             }}
           />
         </Button>
 
         <Dropdown menu={{ items, onClick: onAvatarMenuClick }} placement="bottomRight">
           <Space className="px-2">
-            <Avatar size={'large'} icon={<UserOutlined />} className="cursor-pointer" />
-            <div>Nguyễn Văn A</div>
+            <Avatar size={'large'} icon={user?.avatarUrl || <UserOutlined />} className="cursor-pointer" />
+            <div className="font-semibold">{user?.fullName || 'User'}</div>
           </Space>
         </Dropdown>
       </div>

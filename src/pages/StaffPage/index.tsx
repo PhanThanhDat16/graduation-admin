@@ -25,9 +25,8 @@ import { MOCK_STAFF, STAFF_ROLE_LABEL, type MockStaff, type StaffRole } from '@/
 const { Title, Text } = Typography
 
 const ROLE_COLOR: Record<StaffRole, string> = {
-  super_admin: 'red',
-  moderator: 'blue',
-  support: 'green'
+  admin: 'red',
+  staff: 'blue'
 }
 
 type FormStaff = {
@@ -68,7 +67,7 @@ const StaffPage = () => {
       employeeCode: '',
       fullName: '',
       email: '',
-      role: 'support',
+      role: 'staff',
       active: true
     })
     setModalOpen(true)
@@ -198,7 +197,7 @@ const StaffPage = () => {
   )
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }}>
       <div>
         <Title level={3} style={{ margin: 0 }}>
           Nhân viên vận hành
@@ -284,7 +283,7 @@ const StaffPage = () => {
         }}
         onOk={handleModalOk}
         okText={editing ? 'Cập nhật' : 'Thêm'}
-        destroyOnClose
+        destroyOnHidden
         width={480}
       >
         <Form<FormStaff> form={form} layout="vertical" requiredMark="optional">
