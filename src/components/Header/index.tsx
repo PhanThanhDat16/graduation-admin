@@ -26,7 +26,7 @@ type Props = {
 
 const AppHeader = ({ collapsed, onToggle }: Props) => {
   const { isDark, toggleTheme } = useContext(ThemeContext)
-  const { logOut } = useAuthStore()
+  const { logOut, user } = useAuthStore()
   const nav = useNavigate()
 
   const handleLogout = async () => {
@@ -93,8 +93,8 @@ const AppHeader = ({ collapsed, onToggle }: Props) => {
 
         <Dropdown menu={{ items, onClick: onAvatarMenuClick }} placement="bottomRight">
           <Space className="px-2">
-            <Avatar size={'large'} icon={<UserOutlined />} className="cursor-pointer" />
-            <div>Nguyễn Văn A</div>
+            <Avatar size={'large'} icon={user?.avatarUrl || <UserOutlined />} className="cursor-pointer" />
+            <div className="font-semibold">{user?.fullName || 'User'}</div>
           </Space>
         </Dropdown>
       </div>

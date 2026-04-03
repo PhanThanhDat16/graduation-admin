@@ -6,9 +6,9 @@ type Props = Pick<DrawerProps, 'open' | 'onClose' | 'title' | 'width' | 'extra'>
   children: ReactNode
 }
 
-export function DetailDrawer({ open, onClose, title, width = 520, extra, children }: Props) {
+export function DetailDrawer({ open, onClose, title, extra, children }: Props) {
   return (
-    <Drawer title={title} width={width} open={open} onClose={onClose} destroyOnClose extra={extra}>
+    <Drawer title={title} size="large" open={open} onClose={onClose} destroyOnHidden extra={extra}>
       {children}
     </Drawer>
   )

@@ -158,7 +158,7 @@ const HomePage = () => {
   }, [granularity])
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }}>
       <div>
         <Title level={3} style={{ margin: 0 }}>
           Tổng quan vận hành
@@ -198,7 +198,9 @@ const HomePage = () => {
               title="Hợp đồng (trong kỳ)"
               value={summary.totalContracts}
               prefix={<FileProtectOutlined />}
-              valueStyle={{ color: token.colorPrimary }}
+              styles={{
+                content: { color: token.colorPrimary }
+              }}
             />
           </Card>
         </Col>
@@ -208,7 +210,9 @@ const HomePage = () => {
               title="Dự án hoàn thành"
               value={summary.completedProjects}
               prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: token.colorSuccess }}
+              styles={{
+                content: { color: token.colorSuccess }
+              }}
             />
           </Card>
         </Col>
@@ -218,7 +222,9 @@ const HomePage = () => {
               title="Vụ tranh chấp phát sinh"
               value={summary.disputeCases}
               prefix={<WarningOutlined />}
-              valueStyle={{ color: token.colorWarning }}
+              styles={{
+                content: { color: token.colorWarning }
+              }}
             />
           </Card>
         </Col>
@@ -229,7 +235,7 @@ const HomePage = () => {
               value={summary.revenueVnd}
               formatter={(v): ReactNode => formatVnd(Number(v))}
               prefix={<DollarOutlined />}
-              valueStyle={{ color: token.colorInfo }}
+              style={{ color: token.colorInfo }}
             />
           </Card>
         </Col>
@@ -237,12 +243,12 @@ const HomePage = () => {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} xl={14}>
-          <Card title="Hoạt động theo thời gian" bordered={false}>
+          <Card title="Hoạt động theo thời gian" variant="borderless">
             <Line {...lineConfig} />
           </Card>
         </Col>
         <Col xs={24} xl={10}>
-          <Card title="Doanh thu phí dịch vụ (VND)" bordered={false}>
+          <Card title="Doanh thu phí dịch vụ (VND)" variant="borderless">
             <Column {...columnConfig} />
           </Card>
         </Col>

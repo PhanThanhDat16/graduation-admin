@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { authService } from '../apis/authService'
 import type { AuthState } from '@/types/store'
-import { toast } from 'react-toastify'
+import { message } from 'antd'
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
@@ -20,12 +20,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true })
       const res = await authService.logIn(email, password)
-      get().setAccessToken(res.data.accessToken)
-      toast.success('Đăng nhập thành công!')
+      get().setAccessToken(res.data.data.accessToken)
+      message.success('Đăng nhập thành công!')
       get().fetchMe()
     } catch (error) {
       console.error(error)
-      toast.error('Đăng nhập không thành công!')
+      message.error('Đăng nhập không thành công!')
     } finally {
       set({ loading: false })
     }
@@ -35,22 +35,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await authService.logOut()
       get().clearState()
-      toast.success('Logout thành công!')
+      message.success('Logout thành công!')
     } catch (error) {
       console.error(error)
-      toast.error('Lỗi xảy ra khi logout. Hãy thử lại!')
+      message.error('Lỗi xảy ra khi logout. Hãy thử lại!')
     }
   },
 
   fetchMe: async () => {
     try {
       set({ loading: true })
-      const user = await authService.fetchMe()
-      set({ user })
+      const res = await authService.fetchMe()
+      set({ user: res.data.data })
     } catch (error) {
       console.error(error)
       set({ user: null, accessToken: null })
-      toast.error('Lỗi xảy ra khi lấy dữ liệu người dùng. Hãy thử lại!')
+      message.error('Lỗi xảy ra khi lấy dữ liệu người dùng. Hãy thử lại!')
     } finally {
       set({ loading: false })
     }
@@ -60,17 +60,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true })
       const { user, fetchMe, setAccessToken } = get()
-      const accessToken = await authService.refresh()
+      const res = await authService.refresh()
 
-      setAccessToken(accessToken)
+      setAccessToken(res.data.data.accessToken)
 
       if (!user) {
         await fetchMe()
       }
     } catch (error) {
-      console.error(error)
-      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!')
-      get().clearState()
+      if (error === 401) {
+        get().clearState()
+        return
+      }
+      if (error === 403) {
+        message.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!')
+        get().clearState()
+        return
+      }
+      message.error('Có lỗi xảy ra, vui lòng thử lại!')
     } finally {
       set({ loading: false })
     }

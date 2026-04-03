@@ -4,22 +4,21 @@ export const authService = {
   logIn: async (email: string, password: string) => {
     const res = await axiosInstance.post('auth/login', { email, password })
 
-    return res.data
+    return res
   },
 
   logOut: async () => {
-    const res = await axiosInstance.post('/auth/logout', { refreshToken: String })
-    console.log(res)
+    const res = await axiosInstance.post('/auth/logout')
     return res
   },
 
   fetchMe: async () => {
     const res = await axiosInstance.get('/users/profile')
-    return res.data.data
+    return res
   },
 
   refresh: async () => {
-    const res = await axiosInstance.post('/auth/refresh-token')
-    return res.data.accessToken
+    const res = await axiosInstance.post('/auth/refresh-token', { withCredentials: true })
+    return res
   }
 }

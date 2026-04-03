@@ -105,7 +105,7 @@ const ProjectPage = () => {
   )
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }}>
       <div>
         <Title level={3} style={{ margin: 0 }}>
           Dự án
@@ -125,7 +125,9 @@ const ProjectPage = () => {
               title="Đang mở / tuyển"
               value={stats.active}
               prefix={<PlayCircleOutlined />}
-              valueStyle={{ color: token.colorPrimary }}
+              styles={{
+                content: { color: token.colorPrimary }
+              }}
             />
           </Card>
         </Col>
@@ -135,7 +137,9 @@ const ProjectPage = () => {
               title="Hoàn thành"
               value={stats.done}
               prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: token.colorSuccess }}
+              styles={{
+                content: { color: token.colorSuccess }
+              }}
             />
           </Card>
         </Col>

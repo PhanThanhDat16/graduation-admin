@@ -1,4 +1,4 @@
-export type StaffRole = 'super_admin' | 'moderator' | 'support'
+export type StaffRole = 'admin' | 'staff'
 
 export type MockStaff = {
   id: string
@@ -11,9 +11,8 @@ export type MockStaff = {
 }
 
 export const STAFF_ROLE_LABEL: Record<StaffRole, string> = {
-  super_admin: 'Quản trị cao',
-  moderator: 'Kiểm duyệt / Vận hành',
-  support: 'Hỗ trợ'
+  admin: 'Quản trị',
+  staff: 'Nhân viên'
 }
 
 export const MOCK_STAFF: MockStaff[] = [
@@ -22,7 +21,7 @@ export const MOCK_STAFF: MockStaff[] = [
     employeeCode: 'NV-ADM-001',
     fullName: 'Nguyễn Thị Quản',
     email: 'quan.nt@admin.internal',
-    role: 'super_admin',
+    role: 'admin',
     active: true,
     lastLoginAt: '2025-03-20T08:02:00+07:00'
   },
@@ -31,7 +30,7 @@ export const MOCK_STAFF: MockStaff[] = [
     employeeCode: 'NV-ADM-014',
     fullName: 'Trần Văn Hòa',
     email: 'hoa.tv@admin.internal',
-    role: 'moderator',
+    role: 'staff',
     active: true,
     lastLoginAt: '2025-03-19T17:40:00+07:00'
   },
@@ -40,7 +39,7 @@ export const MOCK_STAFF: MockStaff[] = [
     employeeCode: 'NV-ADM-022',
     fullName: 'Lê Minh Anh',
     email: 'anh.lm@admin.internal',
-    role: 'support',
+    role: 'staff',
     active: true,
     lastLoginAt: '2025-03-18T09:15:00+07:00'
   },
@@ -49,7 +48,7 @@ export const MOCK_STAFF: MockStaff[] = [
     employeeCode: 'NV-ADM-008',
     fullName: 'Phạm Đức Thắng',
     email: 'thang.pd@admin.internal',
-    role: 'moderator',
+    role: 'admin',
     active: false,
     lastLoginAt: '2025-02-01T14:00:00+07:00'
   }

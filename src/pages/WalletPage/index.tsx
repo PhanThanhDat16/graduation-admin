@@ -114,7 +114,7 @@ const WalletPage = () => {
   )
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }}>
       <div>
         <Title level={3} style={{ margin: 0 }}>
           Ví — nạp &amp; rút
@@ -127,7 +127,7 @@ const WalletPage = () => {
       <Alert
         type="warning"
         showIcon
-        message="Dữ liệu nhạy cảm"
+        title="Dữ liệu nhạy cảm"
         description="Thông tin nạp/rút không hiển thị cho nhân viên thường trên các màn hình công khai. Luồng tiền theo dự án (escrow, cột mốc…) xem tại trang Giao dịch dự án."
       />
 
