@@ -1,8 +1,8 @@
-import type { User } from './user'
+import type { UserResponse } from './user'
 
 export interface AuthState {
   accessToken: string | null
-  user: User | null
+  user: UserResponse | null
   loading: boolean
 
   setAccessToken: (accessToken: string) => void
@@ -13,4 +13,5 @@ export interface AuthState {
   logOut: () => Promise<void>
   fetchMe: () => Promise<void>
   refresh: () => Promise<void>
+  noPromise: () => Promise<void>
 }

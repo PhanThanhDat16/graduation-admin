@@ -1,5 +1,5 @@
-import { useMemo, useState, type ReactNode } from 'react'
-import { Card, Col, DatePicker, Row, Segmented, Space, Statistic, Typography, theme } from 'antd'
+import { useMemo, useState, type ReactNode, useContext, useEffect, useRef } from 'react'
+import { Card, Col, DatePicker, Row, Segmented, Space, Statistic, Typography, message, theme } from 'antd'
 import { FileProtectOutlined, CheckCircleOutlined, WarningOutlined, DollarOutlined } from '@ant-design/icons'
 import { Line, Column } from '@ant-design/plots'
 import dayjs from 'dayjs'
@@ -12,6 +12,8 @@ import {
   type DashboardGranularity
 } from '@/mock/homeDashboard.mock'
 import { formatVnd } from '@/utils/formatCurrency'
+import { ThemeContext } from '@/contexts/ThemeContext'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 dayjs.locale('vi')
 
@@ -27,9 +29,11 @@ function defaultRange(g: DashboardGranularity): [Dayjs, Dayjs] {
   }
   return [end.subtract(4, 'year').startOf('year'), end.endOf('year')]
 }
+const { useToken } = theme
 
 const HomePage = () => {
-  const { token } = theme.useToken()
+  const { token } = useToken()
+  const { isDark } = useContext(ThemeContext)
   const [granularity, setGranularity] = useState<DashboardGranularity>('month')
   const [range, setRange] = useState<[Dayjs, Dayjs]>(() => defaultRange('month'))
 
@@ -38,12 +42,37 @@ const HomePage = () => {
   const activityData = useMemo(() => toActivityLineData(buckets), [buckets])
   const revenueData = useMemo(() => toRevenueColumnData(buckets), [buckets])
 
+  const location = useLocation()
+  const navigate = useNavigate()
+  const hasShownMessage = useRef(false)
+
+  useEffect(() => {
+    if (location.state?.message && !hasShownMessage.current) {
+      message.warning(location.state.message)
+      hasShownMessage.current = true
+      // Clear message from state
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.state, location.pathname, navigate])
+
+  // Fix layout break on load by triggering resize event
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event('resize'))
+    }, 200)
+    return () => clearTimeout(timer)
+  }, [])
+
   const lineConfig = useMemo(
     () => ({
+      theme: {
+        type: isDark ? 'dark' : 'light'
+      },
       data: activityData,
       xField: 'period',
       yField: 'value',
       seriesField: 'type',
+      autoFit: true,
       smooth: true,
       height: 320,
       color: ['#1677ff', '#52c41a', '#faad14'],
@@ -64,19 +93,23 @@ const HomePage = () => {
       xAxis: {
         label: {
           autoRotate: true,
-          autoHide: true
+          fill: token.colorText
         }
       }
     }),
-    [activityData, token.colorBorderSecondary]
+    [activityData, isDark, token.colorText, token.colorBorderSecondary]
   )
 
   const columnConfig = useMemo(
     () => ({
+      theme: {
+        type: isDark ? 'dark' : 'light'
+      },
       data: revenueData,
       xField: 'period',
       yField: 'revenue',
       height: 300,
+      autoFit: true,
       color: '#722ed1',
       columnStyle: {
         radius: [6, 6, 0, 0]
@@ -108,7 +141,7 @@ const HomePage = () => {
         }
       }
     }),
-    [revenueData, token.colorBorderSecondary]
+    [revenueData, isDark, token.colorBorderSecondary]
   )
 
   const onGranularityChange = (val: string) => {
@@ -158,7 +191,7 @@ const HomePage = () => {
   }, [granularity])
 
   return (
-    <Space vertical size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }} className="">
       <div>
         <Title level={3} style={{ margin: 0 }}>
           Tổng quan vận hành

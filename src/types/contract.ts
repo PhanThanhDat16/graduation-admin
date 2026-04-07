@@ -1,5 +1,26 @@
 import type { Pagination } from '.'
 
+export type ContractStatus =
+  | 'draft'
+  | 'pending'
+  | 'waiting_payment'
+  | 'running'
+  | 'submitted'
+  | 'completed'
+  | 'dispute'
+  | 'cancelled'
+
+export const CONTRACT_STATUS_LABEL: Record<ContractStatus, string> = {
+  draft: 'Nháp',
+  pending: 'Đang chờ',
+  waiting_payment: 'Chờ thanh toán',
+  running: 'Đang thực hiện',
+  submitted: 'Đã nộp',
+  completed: 'Đã hoàn thành',
+  dispute: 'Tranh chấp',
+  cancelled: 'Đã hủy'
+}
+
 export type ContractResponse = {
   _id: string
   project_id: string
@@ -8,10 +29,10 @@ export type ContractResponse = {
   freelancer_id: { _id: string }
   description: string
   contractor_terms: string
-  freelancer_terms: string // Số tiền dự án (freelancer nhận khi hoàn thành)
-  total_amount: number // Phí platform
-  admin_fee: number // Tiền đặt cọc freelancer (hoàn lại khi hoàn thành)
-  freelancer_deposit: number
+  freelancer_terms: string
+  total_amount: number // Số tiền dự án (freelancer nhận khi hoàn thành)
+  admin_fee: number // Phí platform
+  freelancer_deposit: number // Tiền đặt cọc freelancer (hoàn lại khi hoàn thành)
   contractor_agreed: boolean
   freelancer_agreed: boolean
   deadline: string
@@ -19,7 +40,7 @@ export type ContractResponse = {
   freelancer_paid: boolean
   contractor_paid_amount: number
   freelancer_paid_amount: number
-  status: ['draft', 'pending_agreement', 'waiting_payment', 'running', 'submitted', 'completed', 'dispute', 'cancelled']
+  status: ContractStatus
   escrow_status: ['pending', 'partial', 'funded', 'locked', 'released', 'refunded', 'split']
   total_escrow_amount: number
   released_to_freelancer: number
@@ -46,7 +67,8 @@ export type ContractListResponse = {
 export type ContractQuery = {
   page: number
   limit: number
-  search?: string
-  meta?: Pagination
   status?: string
+  contractor_id?: string
+  freelancer_id?: string
+  meta?: Pagination
 }

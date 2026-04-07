@@ -18,6 +18,7 @@ import {
 } from '../constants'
 import NotFoundPage from '../pages/NotFoundPage'
 import PrivateRoute from './PrivateRoute'
+import AdminOnlyRoute from './AdminOnlyRoute'
 import PrivateRouteLogin from './PrivateRouteLogin'
 import HomePage from '../pages/HomePage'
 import ProjectPage from '../pages/ProjectPage'
@@ -48,14 +49,16 @@ const AppRouters = () => {
             <Route path={TRANSACTION_PAGE} element={<TransactionPage />} />
             <Route path={DISPUTE_PAGE} element={<DisputePage />} />
             <Route path={POST_PAGE} element={<PostPage />} />
-            <Route path={STAFF_PAGE} element={<StaffPage />} />
-            <Route path={WALLET_PAGE} element={<WalletPage />} />
             <Route path={CHAT_PAGE} element={<ChatPage />} />
             <Route path={NOTIFICATION_PAGE} element={<NotificationPage />} />
             <Route path={SETTING_PAGE} element={<SettingPage />} />
             <Route path={PROFILE_PAGE} element={<ProfilePage />} />
 
-            {/* main page */}
+            {/* Admin only pages */}
+            <Route element={<AdminOnlyRoute />}>
+              <Route path={STAFF_PAGE} element={<StaffPage />} />
+              <Route path={WALLET_PAGE} element={<WalletPage />} />
+            </Route>
           </Route>
         </Route>
 

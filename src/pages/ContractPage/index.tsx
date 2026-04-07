@@ -2,80 +2,84 @@ import { useMemo, useState } from 'react'
 import { Button, Card, Descriptions, Input, Select, Space, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { EyeOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
 import { DetailDrawer } from '@/components/DetailDrawer'
-import { CONTRACT_STATUS_LABEL, MOCK_CONTRACTS, type ContractStatus, type MockContract } from '@/mock/contracts.mock'
 import { formatVnd } from '@/utils/formatCurrency'
+
+import { CONTRACT_STATUS_LABEL, type ContractResponse, type ContractStatus } from '@/types/contract'
 
 const { Title, Text } = Typography
 
 const STATUS_COLOR: Record<ContractStatus, string> = {
   draft: 'default',
-  active: 'processing',
+  pending: 'processing',
+  waiting_payment: 'warning',
+  running: 'blue',
+  submitted: 'cyan',
   completed: 'success',
-  terminated: 'error'
+  dispute: 'magenta',
+  cancelled: 'error'
 }
 
 const ContractPage = () => {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<ContractStatus | 'all'>('all')
-  const [detail, setDetail] = useState<MockContract | null>(null)
+  const [detail, setDetail] = useState<ContractResponse | null>(null)
+  console.log(search)
 
-  const filtered = useMemo(() => {
-    return MOCK_CONTRACTS.filter((c) => {
-      const q = search.toLowerCase()
-      const matchText =
-        !search.trim() ||
-        c.code.toLowerCase().includes(q) ||
-        c.projectTitle.toLowerCase().includes(q) ||
-        c.clientName.toLowerCase().includes(q) ||
-        c.freelancerName.toLowerCase().includes(q)
-      const matchStatus = status === 'all' || c.status === status
-      return matchText && matchStatus
-    })
-  }, [search, status])
+  // const filtered = useMemo(() => {
+  //   return MOCK_CONTRACTS.filter((c) => {
+  //     const q = search.toLowerCase()
+  //     const matchText =
+  //       !search.trim() ||
+  //       c.code.toLowerCase().includes(q) ||
+  //       c.projectTitle.toLowerCase().includes(q) ||
+  //       c.clientName.toLowerCase().includes(q) ||
+  //       c.freelancerName.toLowerCase().includes(q)
+  //     const matchStatus = status === 'all' || c.status === status
+  //     return matchText && matchStatus
+  //   })
+  // }, [search, status])
 
-  const columns: ColumnsType<MockContract> = useMemo(
+  const columns: ColumnsType<ContractResponse> = useMemo(
     () => [
-      { title: 'Mã HĐ', dataIndex: 'code', key: 'code', width: 130 },
-      { title: 'Dự án', dataIndex: 'projectTitle', key: 'pt', ellipsis: true },
-      { title: 'Mã dự án', dataIndex: 'projectCode', key: 'pc', width: 130 },
-      { title: 'Chủ đầu tư', dataIndex: 'clientName', key: 'cl', ellipsis: true },
-      { title: 'Nhà thầu', dataIndex: 'freelancerName', key: 'fl', ellipsis: true },
+      { title: 'Mã HĐ', dataIndex: `_id`, key: `_id`, width: 130 },
+      { title: 'Mã dự án', dataIndex: 'project_id', key: 'pc', width: 130 },
+      { title: 'Chủ đầu tư', dataIndex: 'contractor_id', key: 'cl', ellipsis: true },
+      { title: 'Nhà thầu', dataIndex: 'freelancer_id', key: 'fl', ellipsis: true },
       {
         title: 'Giá trị',
-        dataIndex: 'valueVnd',
-        key: 'val',
+        dataIndex: 'total_amount',
+        key: 'total_amount',
         width: 140,
         render: (n: number) => formatVnd(n)
       },
       {
         title: 'Phí nền tảng',
-        dataIndex: 'platformFeeVnd',
-        key: 'fee',
+        dataIndex: 'admin_fee',
+        key: 'admin_fee',
         width: 140,
         render: (n: number) => formatVnd(n)
       },
       {
         title: 'Trạng thái',
         dataIndex: 'status',
-        key: 'st',
+        key: 'status',
         width: 130,
         render: (s: ContractStatus) => <Tag color={STATUS_COLOR[s]}>{CONTRACT_STATUS_LABEL[s]}</Tag>
       },
-      {
-        title: 'Ký lúc',
-        dataIndex: 'signedAt',
-        key: 'sig',
-        width: 150,
-        render: (iso: string | null) => (iso ? dayjs(iso).format('DD/MM/YYYY HH:mm') : <Text type="secondary">—</Text>)
-      },
+      // {
+      //   title: 'Ký lúc',
+      //   dataIndex: 'signedAt',
+      //   key: 'sig',
+      //   width: 150,
+      //   render: (iso: string | null) => (iso ? dayjs(iso).format('DD/MM/YYYY HH:mm') : <Text type="secondary">—</Text>)
+      // },
       {
         title: 'Thao tác',
         key: 'act',
         fixed: 'right',
         width: 110,
-        render: (_: unknown, record: MockContract) => (
+        render: (_: unknown, record: ContractResponse) => (
           <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => setDetail(record)}>
             Chi tiết
           </Button>
@@ -121,7 +125,7 @@ const ContractPage = () => {
         <Table
           rowKey="id"
           columns={columns}
-          dataSource={filtered}
+          dataSource={[]}
           pagination={{ pageSize: 8, showSizeChanger: true }}
           scroll={{ x: 1220 }}
         />
@@ -130,24 +134,23 @@ const ContractPage = () => {
       <DetailDrawer
         open={!!detail}
         onClose={() => setDetail(null)}
-        title={detail ? `Hợp đồng: ${detail.code}` : 'Chi tiết'}
+        title={detail ? `Hợp đồng: ${detail._id}` : 'Chi tiết'}
         width={560}
       >
         {detail && (
           <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Mã hợp đồng">{detail.code}</Descriptions.Item>
-            <Descriptions.Item label="Dự án">{detail.projectTitle}</Descriptions.Item>
-            <Descriptions.Item label="Mã dự án">{detail.projectCode}</Descriptions.Item>
-            <Descriptions.Item label="Chủ đầu tư">{detail.clientName}</Descriptions.Item>
-            <Descriptions.Item label="Nhà thầu">{detail.freelancerName}</Descriptions.Item>
-            <Descriptions.Item label="Giá trị">{formatVnd(detail.valueVnd)}</Descriptions.Item>
-            <Descriptions.Item label="Phí nền tảng">{formatVnd(detail.platformFeeVnd)}</Descriptions.Item>
+            <Descriptions.Item label="Mã hợp đồng">{detail?._id}</Descriptions.Item>
+            <Descriptions.Item label="Mã dự án">{detail?.project_id}</Descriptions.Item>
+            <Descriptions.Item label="Chủ đầu tư">{detail?.contractor_id._id}</Descriptions.Item>
+            <Descriptions.Item label="Nhà thầu">{detail?.freelancer_id._id}</Descriptions.Item>
+            <Descriptions.Item label="Giá trị">{formatVnd(detail?.total_amount)}</Descriptions.Item>
+            <Descriptions.Item label="Phí nền tảng">{formatVnd(detail?.admin_fee)}</Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
-              <Tag color={STATUS_COLOR[detail.status]}>{CONTRACT_STATUS_LABEL[detail.status]}</Tag>
+              <Tag color={STATUS_COLOR[detail?.status]}>{CONTRACT_STATUS_LABEL[detail.status]}</Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="Ký lúc">
+            {/* <Descriptions.Item label="Ký lúc">
               {detail.signedAt ? dayjs(detail.signedAt).format('DD/MM/YYYY HH:mm') : '—'}
-            </Descriptions.Item>
+            </Descriptions.Item> */}
           </Descriptions>
         )}
       </DetailDrawer>

@@ -1,9 +1,9 @@
-// import axiosInstance from '@/utils/axiosInstance'
+import axiosInstance from '@/utils/axiosInstance'
 
-// const contractService = {
-//   getContractList: async () => {
-//     const res = await axiosInstance.get('/api/contracts')
+export const contractService = {
+  getContractList: async () => {
+    const res = await axiosInstance.get('/api/contracts')
 
-//     return res
-//   }
-// }
+    return res
+  }
+}
