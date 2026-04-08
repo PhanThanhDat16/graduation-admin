@@ -21,6 +21,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: true })
       const res = await authService.logIn(email, password)
       get().setAccessToken(res.data.data.accessToken)
+
+      if (res.data.data.user.role !== 'admin' && res.data.data.user.role !== 'staff') {
+        get().noPromise()
+        return
+      }
+
       message.success('Đăng nhập thành công!')
       get().fetchMe()
     } catch (error) {
@@ -80,6 +86,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       message.error('Có lỗi xảy ra, vui lòng thử lại!')
     } finally {
       set({ loading: false })
+    }
+  },
+
+  noPromise: async () => {
+    try {
+      await authService.logOut()
+      get().clearState()
+      message.error('Bạn không có quyền truy cập vào trang này!')
+    } catch (error) {
+      console.error(error)
+      message.error('Có lỗi xảy ra, vui lòng thử lại!')
     }
   }
 }))

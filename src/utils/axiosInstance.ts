@@ -10,8 +10,6 @@ const axiosInstance = axios.create({
   }
 })
 
-axiosInstance.defaults.withCredentials = true
-
 // gắn access vào header req
 axiosInstance.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState()

@@ -13,6 +13,7 @@ import {
   WarningOutlined
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const { useToken } = theme
 
@@ -23,8 +24,9 @@ type Props = {
 const AppSidebar = ({ collapsed }: Props) => {
   const { token } = useToken()
   const nav = useNavigate()
+  const { user } = useAuthStore()
 
-  const items = [
+  let items = [
     {
       key: 'home',
       icon: <AppstoreOutlined />,
@@ -76,6 +78,11 @@ const AppSidebar = ({ collapsed }: Props) => {
       label: 'Nhắn tin'
     }
   ]
+
+  // Hide wallet and staff items for staff role
+  if (user?.role === 'staff') {
+    items = items.filter((item) => item.key !== 'wallet' && item.key !== 'staff')
+  }
 
   const handleNavigate = (e: any) => {
     nav(`/${e.key}`)

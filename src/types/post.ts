@@ -1,6 +1,6 @@
 import type { Pagination } from '.'
 
-export type ContractResponse = {
+export type PostResponse = {
   _id: string
   title: string
   content: string
@@ -12,6 +12,6 @@ export type ContractResponse = {
 }
 
 export type PostListResponse = {
-  data: ContractResponse[]
+  data: PostResponse[]
   pagination: Pagination
 }

@@ -2,13 +2,12 @@ import axiosInstance from '../utils/axiosInstance'
 
 export const authService = {
   logIn: async (email: string, password: string) => {
-    const res = await axiosInstance.post('auth/login', { email, password })
-
+    const res = await axiosInstance.post('auth/login', { email, password }, { withCredentials: true })
     return res
   },
 
   logOut: async () => {
-    const res = await axiosInstance.post('/auth/logout')
+    const res = await axiosInstance.post('/auth/logout', { withCredentials: true })
     return res
   },
 
