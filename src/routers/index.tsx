@@ -3,12 +3,12 @@ import MainLayout from '../layouts'
 import {
   CHAT_PAGE,
   CONTRACT_PAGE,
-  CUSTOMER_PAGE,
+  FREELANCER_PAGE,
+  CONTRACTOR_PAGE,
   DISPUTE_PAGE,
   HOME_PAGE,
   LOGIN_PAGE,
   NOTIFICATION_PAGE,
-  POST_PAGE,
   PROFILE_PAGE,
   PROJECT_PAGE,
   SETTING_PAGE,
@@ -23,12 +23,12 @@ import PrivateRouteLogin from './PrivateRouteLogin'
 import HomePage from '../pages/HomePage'
 import ProjectPage from '../pages/ProjectPage'
 import ContractPage from '../pages/ContractPage'
-import CustomerPage from '../pages/CustomerPage'
+import FreelancerPage from '../pages/FreelancerPage'
+import ContractorPage from '../pages/ContractorPage'
 import TransactionPage from '../pages/TransactionPage'
 import DisputePage from '../pages/DisputePage'
 import StaffPage from '../pages/StaffPage'
 import WalletPage from '../pages/WalletPage'
-import PostPage from '../pages/PostPage'
 import ChatPage from '../pages/ChatPage'
 import NotificationPage from '../pages/Notification'
 import SettingPage from '../pages/SettingPage'
@@ -45,10 +45,10 @@ const AppRouters = () => {
             <Route path={HOME_PAGE} element={<HomePage />} />
             <Route path={PROJECT_PAGE} element={<ProjectPage />} />
             <Route path={CONTRACT_PAGE} element={<ContractPage />} />
-            <Route path={CUSTOMER_PAGE} element={<CustomerPage />} />
+            <Route path={FREELANCER_PAGE} element={<FreelancerPage />} />
+            <Route path={CONTRACTOR_PAGE} element={<ContractorPage />} />
             <Route path={TRANSACTION_PAGE} element={<TransactionPage />} />
             <Route path={DISPUTE_PAGE} element={<DisputePage />} />
-            <Route path={POST_PAGE} element={<PostPage />} />
             <Route path={CHAT_PAGE} element={<ChatPage />} />
             <Route path={NOTIFICATION_PAGE} element={<NotificationPage />} />
             <Route path={SETTING_PAGE} element={<SettingPage />} />

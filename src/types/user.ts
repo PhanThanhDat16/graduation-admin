@@ -7,7 +7,7 @@ export type UserResponse = {
   avatarUrl?: string
   phone?: string
   birthday?: Date
-  role: 'admin' | 'staff' | 'freelancer' | 'contructor'
+  role: 'admin' | 'staff' | 'freelancer' | 'contractor'
   gender?: 'male' | 'female'
   address?: string
   status?: 'active' | 'disabled'
@@ -29,4 +29,31 @@ export type UserQuery = {
   status?: string
   gender?: string
   isVerified?: boolean
+}
+
+export type FreelancerQuery = {
+  role: string
+  page: number
+  limit: number
+  keyword?: string
+  status?: string
+  pagination?: Pagination
+}
+
+export type ContractorQuery = {
+  role: string
+  page: number
+  limit: number
+  keyword?: string
+  status?: string
+  pagination?: Pagination
+}
+
+export type StaffQuery = {
+  role: string
+  page: number
+  limit: number
+  keyword?: string
+  status?: string
+  pagination?: Pagination
 }

@@ -1,23 +1,12 @@
 import axiosInstance from '../utils/axiosInstance'
 
 export const authService = {
-  logIn: async (email: string, password: string) => {
-    const res = await axiosInstance.post('auth/login', { email, password }, { withCredentials: true })
-    return res
-  },
+  logIn: async (email: string, password: string) =>
+    await axiosInstance.post('auth/login', { email, password }, { withCredentials: true }),
 
-  logOut: async () => {
-    const res = await axiosInstance.post('/auth/logout', { withCredentials: true })
-    return res
-  },
+  logOut: async () => await axiosInstance.post('/auth/logout', { withCredentials: true }),
 
-  fetchMe: async () => {
-    const res = await axiosInstance.get('/users/profile')
-    return res
-  },
+  fetchMe: async () => await axiosInstance.get('/users/profile'),
 
-  refresh: async () => {
-    const res = await axiosInstance.post('/auth/refresh-token', { withCredentials: true })
-    return res
-  }
+  refresh: async () => await axiosInstance.post('/auth/refresh-token', { withCredentials: true })
 }

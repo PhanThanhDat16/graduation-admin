@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Button, Card, Descriptions, Form, Input, Modal, Space, Switch, Tag, Typography, message } from 'antd'
+import { Card, Descriptions, Space, Tag, Typography } from 'antd'
 import dayjs from 'dayjs'
-import { PlusOutlined, UserOutlined } from '@ant-design/icons'
 import { DetailDrawer } from '@/components/DetailDrawer'
 import { userService } from '@/apis/userService'
-import type { StaffQuery, UserResponse } from '@/types/user'
+import type { ContractorQuery, UserResponse } from '@/types/user'
 import type { FilterConfig } from '@/components/common/AppFilters'
-import TableStaff from './Table'
+import TableContractors from './Table'
 import AppFilters from '@/components/common/AppFilters'
 
 const { Title, Text } = Typography
 
-const StaffFilters: FilterConfig[] = [
+const ContractorFilters: FilterConfig[] = [
   {
     type: 'input',
     name: 'keyword',
@@ -36,28 +35,17 @@ const StaffFilters: FilterConfig[] = [
   }
 ]
 
-type FormStaff = {
-  fullName: string
-  email: string
-  status: 'active' | 'disabled'
-}
-
-const StaffPage = () => {
+const ContractorPage = () => {
   const [detail, setDetail] = useState<UserResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  // Modal
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState<UserResponse | null>(null)
-  const [form] = Form.useForm<FormStaff>()
-
-  const [query, setQuery] = useState<StaffQuery>({
-    role: 'staff',
+  const [query, setQuery] = useState<ContractorQuery>({
+    role: 'contractor',
     keyword: '',
     status: '',
     page: 1,
     limit: 10
   })
-  const [staffList, setStaffList] = useState<UserResponse[]>([])
+  const [contractors, setContractors] = useState<UserResponse[]>([])
 
   const handleGetValueFilter = (values: Record<string, any>) => {
     setQuery((prev) => ({
@@ -80,40 +68,7 @@ const StaffPage = () => {
     setDetail(record)
   }
 
-  const openCreate = () => {
-    setEditing(null)
-    form.resetFields()
-    form.setFieldsValue({
-      fullName: '',
-      email: '',
-      status: 'active'
-    })
-    setModalOpen(true)
-  }
-
-  const openEdit = (record: UserResponse) => {
-    setEditing(record)
-    form.setFieldsValue({
-      fullName: record.fullName,
-      email: record.email,
-      status: record.status || 'active'
-    })
-    setModalOpen(true)
-  }
-
-  const handleModalOk = async () => {
-    try {
-      // Logic for create/update would go here when API is ready
-      // const values = await form.validateFields()
-      message.info('Tính năng Thêm/Sửa đang được phát triển.')
-      setModalOpen(false)
-      setEditing(null)
-    } catch (error) {
-      console.error('Validation failed:', error)
-    }
-  }
-
-  const fetchStaff = async () => {
+  const fetchContractors = async () => {
     try {
       setIsLoading(true)
       const res = await userService.getUsersByRole(query)
@@ -121,7 +76,7 @@ const StaffPage = () => {
         data: [],
         pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
       }
-      setStaffList(payload.data || [])
+      setContractors(payload.data || [])
       if (payload.pagination) {
         setQuery((prev) => ({
           ...prev,
@@ -132,46 +87,38 @@ const StaffPage = () => {
       }
       setIsLoading(false)
     } catch (error) {
-      console.error('Failed to fetch staff:', error)
+      console.error('Failed to fetch contractors:', error)
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    Promise.resolve().then(() => fetchStaff())
+    Promise.resolve().then(() => fetchContractors())
   }, [query.page, query.limit, query.keyword, query.status])
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <Title level={3} style={{ margin: 0 }}>
-            Nhân viên vận hành
-          </Title>
-          <Text type="secondary">Tài khoản nội bộ quản trị — không trùng với tài khoản freelance / chủ dự án.</Text>
-        </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-          Thêm nhân viên
-        </Button>
+      <div>
+        <Title level={3} style={{ margin: 0 }}>
+          Danh sách Contractor (Chủ dự án)
+        </Title>
+        <Text type="secondary">Quản lý tài khoản các chủ dự án / nhà tuyển dụng trên hệ thống.</Text>
       </div>
 
       <Card>
         <Space wrap style={{ marginBottom: 16 }}>
-          <AppFilters filters={StaffFilters} onChange={handleGetValueFilter} />
+          <AppFilters filters={ContractorFilters} onChange={handleGetValueFilter} />
         </Space>
 
-        <TableStaff
+        <TableContractors
           loading={isLoading}
           page={query.page}
           pageSize={query.limit}
           total={query?.pagination?.total || 0}
-          staffList={staffList}
+          contractors={contractors}
           onPageChange={handleChangePageSizeTable}
           onDelete={() => {}}
-          onEdit={(id) => {
-            const record = staffList.find((s) => s._id === id)
-            if (record) openEdit(record)
-          }}
+          onEdit={() => {}}
           onView={handleViewDetail}
         />
       </Card>
@@ -179,15 +126,8 @@ const StaffPage = () => {
       <DetailDrawer
         open={!!detail}
         onClose={() => setDetail(null)}
-        title={detail ? `Nhân viên: ${detail.fullName}` : 'Chi tiết'}
+        title={detail ? `Contractor: ${detail.fullName}` : 'Chi tiết'}
         width={520}
-        extra={
-          detail ? (
-            <Button icon={<UserOutlined />} onClick={() => detail && openEdit(detail)}>
-              Sửa
-            </Button>
-          ) : undefined
-        }
       >
         {detail && (
           <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -218,19 +158,21 @@ const StaffPage = () => {
 
             <Descriptions column={1} bordered size="small">
               <Descriptions.Item label="Mã user">{detail._id}</Descriptions.Item>
-              <Descriptions.Item label="Họ tên">{detail.fullName}</Descriptions.Item>
+              <Descriptions.Item label="Tên hiển thị">{detail.fullName}</Descriptions.Item>
               <Descriptions.Item label="Email">{detail.email}</Descriptions.Item>
-              <Descriptions.Item label="Vai trò">
-                <Tag color={detail.role === 'admin' ? 'red' : 'blue'}>
-                  {detail.role === 'admin' ? 'Quản trị viên' : 'Nhân viên'}
-                </Tag>
-              </Descriptions.Item>
               <Descriptions.Item label="Số điện thoại">{detail.phone || 'Chưa cập nhật'}</Descriptions.Item>
               <Descriptions.Item label="Giới tính">
                 {detail.gender === 'male' ? 'Nam' : detail.gender === 'female' ? 'Nữ' : 'Khác'}
               </Descriptions.Item>
+              <Descriptions.Item label="Ngày sinh">
+                {detail.birthday ? dayjs(detail.birthday).format('DD/MM/YYYY') : 'Chưa cập nhật'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Địa chỉ">{detail.address || 'Chưa cập nhật'}</Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
                 {detail.status === 'active' ? <Tag color="success">Hoạt động</Tag> : <Tag color="error">Vô hiệu</Tag>}
+              </Descriptions.Item>
+              <Descriptions.Item label="Xác minh">
+                {detail.isVerified ? <Tag color="blue">Đã xác minh</Tag> : <Tag color="warning">Chưa xác minh</Tag>}
               </Descriptions.Item>
               <Descriptions.Item label="Tham gia">
                 {dayjs(detail.createdAt).format('DD/MM/YYYY HH:mm')}
@@ -239,45 +181,8 @@ const StaffPage = () => {
           </Space>
         )}
       </DetailDrawer>
-
-      <Modal
-        title={editing ? 'Sửa nhân viên' : 'Thêm nhân viên'}
-        open={modalOpen}
-        onCancel={() => {
-          setModalOpen(false)
-          setEditing(null)
-        }}
-        onOk={handleModalOk}
-        okText={editing ? 'Cập nhật' : 'Thêm'}
-        destroyOnHidden
-        width={480}
-      >
-        <Form<FormStaff> form={form} layout="vertical" requiredMark="optional">
-          <Form.Item label="Họ và tên" name="fullName" rules={[{ required: true, message: 'Nhập họ tên' }]}>
-            <Input maxLength={120} />
-          </Form.Item>
-          <Form.Item
-            label="Email nội bộ"
-            name="email"
-            rules={[
-              { required: true, message: 'Nhập email' },
-              { type: 'email', message: 'Email không hợp lệ' }
-            ]}
-          >
-            <Input maxLength={120} />
-          </Form.Item>
-          <Form.Item
-            label="Trạng thái"
-            name="status"
-            valuePropName="checked"
-            getValueProps={(v) => ({ checked: v === 'active' })}
-          >
-            <Switch checkedChildren="Hoạt động" unCheckedChildren="Vô hiệu" />
-          </Form.Item>
-        </Form>
-      </Modal>
     </Space>
   )
 }
 
-export default StaffPage
+export default ContractorPage
