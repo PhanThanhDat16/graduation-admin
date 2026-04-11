@@ -2,13 +2,13 @@ import { Menu, theme } from 'antd'
 import Sider from 'antd/es/layout/Sider'
 import {
   AppstoreOutlined,
-  FileOutlined,
   MessageOutlined,
   PaperClipOutlined,
   ProjectOutlined,
   TeamOutlined,
   TransactionOutlined,
   UserOutlined,
+  UsergroupAddOutlined,
   WalletOutlined,
   WarningOutlined
 } from '@ant-design/icons'
@@ -43,9 +43,14 @@ const AppSidebar = ({ collapsed }: Props) => {
       label: 'Hợp đồng'
     },
     {
-      key: 'customer',
+      key: 'freelancer',
       icon: <UserOutlined />,
-      label: 'Khách hàng'
+      label: 'Freelancer'
+    },
+    {
+      key: 'contractor',
+      icon: <UsergroupAddOutlined />,
+      label: 'Contractor'
     },
     {
       key: 'transaction',
@@ -56,11 +61,6 @@ const AppSidebar = ({ collapsed }: Props) => {
       key: 'dispute',
       icon: <WarningOutlined />,
       label: 'Tranh chấp'
-    },
-    {
-      key: 'post',
-      icon: <FileOutlined />,
-      label: 'Bài đăng'
     },
     {
       key: `staff`,

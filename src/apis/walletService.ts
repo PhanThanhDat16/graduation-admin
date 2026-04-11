@@ -1,20 +1,10 @@
 import axiosInstance from '@/utils/axiosInstance'
 
 export const walletService = {
-  getAllWallets: async () => {
-    const res = await axiosInstance.get('/api/wallets/admin/withdraw-requests')
-    return res
-  },
+  getAllWallets: async () => await axiosInstance.get('/wallets/admin/withdraw-requests'),
 
-  getUserWallet: async (userId: string) => {
-    const res = await axiosInstance.get(`/api/wallets/admin/${userId}`)
-    return res
-  },
+  getUserWallet: async (userId: string) => await axiosInstance.get(`/wallets/admin/${userId}`),
 
-  postUserWallet: async (userId: string, amount: number) => {
-    const res = await axiosInstance.post(`/api/wallets/admin/${userId}/deposit`, {
-      amount
-    })
-    return res
-  }
+  postUserWallet: async (userId: string, amount: number) =>
+    await axiosInstance.post(`/wallets/admin/${userId}/deposit`, { amount })
 }
