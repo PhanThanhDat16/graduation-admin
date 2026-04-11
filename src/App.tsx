@@ -1,11 +1,14 @@
 import { ToastContainer } from 'react-toastify'
 import AppRouters from './routers'
+import ThemeProvider from './contexts/ThemeProvider'
 
 const App = () => {
   return (
     <div className="main-app">
-      <ToastContainer />
-      <AppRouters />
+      <ThemeProvider>
+        <ToastContainer />
+        <AppRouters />
+      </ThemeProvider>
     </div>
   )
 }

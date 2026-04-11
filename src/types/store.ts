@@ -1,0 +1,17 @@
+import type { UserResponse } from './user'
+
+export interface AuthState {
+  accessToken: string | null
+  user: UserResponse | null
+  loading: boolean
+
+  setAccessToken: (accessToken: string) => void
+
+  clearState: () => void
+
+  logIn: (email: string, password: string) => Promise<void>
+  logOut: () => Promise<void>
+  fetchMe: () => Promise<void>
+  refresh: () => Promise<void>
+  noPromise: () => Promise<void>
+}
