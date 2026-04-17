@@ -1,15 +1,16 @@
 import { useMemo, useState } from 'react'
-import { Button, Card, Descriptions, Input, List, Space, Tag, Typography } from 'antd'
+import { useNavigate } from 'react-router-dom'
+import { Button, Card, Input, List, Space, Tag, Typography } from 'antd'
 import { EyeOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { DetailDrawer } from '@/components/DetailDrawer'
 import { MOCK_CHAT_THREADS, type MockChatThread } from '@/mock/chatThreads.mock'
+import { CHAT_PAGE } from '@/constants'
 
 const { Title, Text } = Typography
 
 const ChatPage = () => {
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
-  const [detail, setDetail] = useState<MockChatThread | null>(null)
 
   const filtered = useMemo(() => {
     return MOCK_CHAT_THREADS.filter(
@@ -20,6 +21,10 @@ const ChatPage = () => {
         t.lastMessagePreview.toLowerCase().includes(search.toLowerCase())
     )
   }, [search])
+
+  const handleViewDetail = (item: MockChatThread) => {
+    navigate(`${CHAT_PAGE}/${item.id}`)
+  }
 
   return (
     <Space vertical size="large" style={{ width: '100%' }}>
@@ -45,7 +50,7 @@ const ChatPage = () => {
           renderItem={(item: MockChatThread) => (
             <List.Item
               actions={[
-                <Button key="d" type="link" size="small" icon={<EyeOutlined />} onClick={() => setDetail(item)}>
+                <Button key="d" type="link" size="small" icon={<EyeOutlined />} onClick={() => handleViewDetail(item)}>
                   Chi tiết
                 </Button>
               ]}
@@ -75,26 +80,6 @@ const ChatPage = () => {
           )}
         />
       </Card>
-
-      <DetailDrawer
-        open={!!detail}
-        onClose={() => setDetail(null)}
-        title={detail ? `Hội thoại: ${detail.projectCode}` : 'Chi tiết'}
-      >
-        {detail && (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Mã dự án">{detail.projectCode}</Descriptions.Item>
-            <Descriptions.Item label="Tham gia">{detail.participants}</Descriptions.Item>
-            <Descriptions.Item label="Tin nhắn gần nhất">{detail.lastMessagePreview}</Descriptions.Item>
-            <Descriptions.Item label="Thời gian">
-              {dayjs(detail.lastMessageAt).format('DD/MM/YYYY HH:mm:ss')}
-            </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái đọc (mock)">
-              {detail.unreadFlag ? <Tag color="red">Có tin chưa đọc</Tag> : <Tag>Đã xem</Tag>}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </DetailDrawer>
     </Space>
   )
 }

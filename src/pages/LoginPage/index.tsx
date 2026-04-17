@@ -43,6 +43,7 @@ const LogInPage = () => {
       }
 
       await logIn(values.email, values.password)
+
       nav('/')
     } catch (error) {
       console.log(error)

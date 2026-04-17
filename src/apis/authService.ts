@@ -8,5 +8,10 @@ export const authService = {
 
   fetchMe: async () => await axiosInstance.get('/users/profile'),
 
-  refresh: async () => await axiosInstance.post('/auth/refresh-token', { withCredentials: true })
+  refresh: async () => await axiosInstance.post('/auth/refresh-token', { withCredentials: true }),
+
+  forgotPassword: async (email: string) => await axiosInstance.post('/auth/users/forgot', { email }),
+
+  verifyPassword: async (param: { email: string; otp: string }) =>
+    await axiosInstance.post('/auth/users/verify', { param })
 }

@@ -1,75 +1,157 @@
-import { useMemo, useState } from 'react'
-import { Button, Card, Descriptions, Input, Select, Space, Table, Tag, Typography } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
-import { EyeOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
-import { DetailDrawer } from '@/components/DetailDrawer'
-import { DISPUTE_STATUS_LABEL, MOCK_DISPUTES, type DisputeStatus, type MockDispute } from '@/mock/disputes.mock'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Card, Space, Typography } from 'antd'
+import { DISPUTE_PAGE } from '@/constants'
+import type { DisputeQuery, DisputeResponse } from '@/types/dispute'
+import { disputeService } from '@/apis/disputeService'
+import { userService } from '@/apis/userService'
+import AppFilters, { type FilterConfig } from '@/components/common/AppFilters'
+import TableDisputes from './Table'
 
 const { Title, Text } = Typography
 
-const STATUS_COLOR: Record<DisputeStatus, string> = {
-  open: 'red',
-  mediation: 'orange',
-  resolved: 'green',
-  closed: 'default'
-}
-
-const DisputePage = () => {
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<DisputeStatus | 'all'>('all')
-  const [detail, setDetail] = useState<MockDispute | null>(null)
-
-  const filtered = useMemo(() => {
-    return MOCK_DISPUTES.filter((d) => {
-      const q = search.toLowerCase()
-      const matchText =
-        !search.trim() ||
-        d.code.toLowerCase().includes(q) ||
-        d.projectCode.toLowerCase().includes(q) ||
-        d.projectTitle.toLowerCase().includes(q) ||
-        d.summary.toLowerCase().includes(q)
-      const matchStatus = status === 'all' || d.status === status
-      return matchText && matchStatus
-    })
-  }, [search, status])
-
-  const columns: ColumnsType<MockDispute> = useMemo(
-    () => [
-      { title: 'Mã TC', dataIndex: 'code', key: 'code', width: 120 },
-      { title: 'Dự án', dataIndex: 'projectTitle', key: 'pt', ellipsis: true },
-      { title: 'Mã dự án', dataIndex: 'projectCode', key: 'pc', width: 120 },
-      { title: 'Chủ dự án', dataIndex: 'clientName', key: 'cl', ellipsis: true },
-      { title: 'Nhà thầu', dataIndex: 'freelancerName', key: 'fl', ellipsis: true },
-      { title: 'Tóm tắt', dataIndex: 'summary', key: 'sum', ellipsis: true },
+const DisputeFilters: FilterConfig[] = [
+  {
+    type: 'input',
+    name: 'contract_id',
+    placeholder: 'Tìm kiếm mã hợp đồng...',
+    label: 'Tìm kiếm hợp đồng'
+  },
+  {
+    type: 'select',
+    name: 'status',
+    placeholder: 'Trạng thái',
+    options: [
       {
-        title: 'Trạng thái',
-        dataIndex: 'status',
-        key: 'st',
-        width: 120,
-        render: (s: DisputeStatus) => <Tag color={STATUS_COLOR[s]}>{DISPUTE_STATUS_LABEL[s]}</Tag>
+        label: 'Mở tranh chấp',
+        value: 'open'
       },
       {
-        title: 'Mở lúc',
-        dataIndex: 'openedAt',
-        key: 'op',
-        width: 150,
-        render: (iso: string) => dayjs(iso).format('DD/MM/YYYY HH:mm')
+        label: 'Đang đàm phán',
+        value: 'negotiating'
       },
       {
-        title: 'Thao tác',
-        key: 'ac',
-        fixed: 'right',
-        width: 110,
-        render: (_: unknown, record: MockDispute) => (
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => setDetail(record)}>
-            Chi tiết
-          </Button>
-        )
+        label: 'Đang xem xét',
+        value: 'admin_review'
+      },
+      {
+        label: 'Đã giải quyết',
+        value: 'resolved'
+      },
+      {
+        label: 'Đã tự đóng',
+        value: 'auto_closed'
       }
     ],
-    []
-  )
+    label: 'Trạng thái'
+  }
+]
+
+const DisputePage = () => {
+  const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(false)
+  const [query, setQuery] = useState<DisputeQuery>({
+    contract_id: '',
+    status: '',
+    page: 1,
+    limit: 10
+  })
+  const [disputes, setDisputes] = useState<DisputeResponse[]>([])
+
+  const handleGetValueFilter = (values: Record<string, any>) => {
+    setQuery((prev) => ({
+      ...prev,
+      page: 1,
+      contract_id: values.contract_id || '',
+      status: values.status || ''
+    }))
+  }
+
+  const handleChangePageSizeTable = (newPage: number, newSize: number) => {
+    setQuery((prev) => ({
+      ...prev,
+      page: newPage,
+      limit: newSize
+    }))
+  }
+
+  const handleViewDetail = (record: DisputeResponse) => {
+    navigate(`${DISPUTE_PAGE}/${record._id}`)
+  }
+
+  const fetchDisputes = async () => {
+    try {
+      setIsLoading(true)
+      const res = await disputeService.getDisputeList(query)
+      const payload = res.data || {
+        data: [],
+        pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
+      }
+      const contractsData = payload.data || []
+      const contractsWithDetails = await Promise.all(
+        contractsData.map(async (dispute: DisputeResponse) => {
+          let freelancerName = '—'
+          let contractorName = '—'
+          let adminName = '—'
+
+          // Fetch contractorName
+          if (dispute.contractor_id) {
+            try {
+              const userRes = await userService.getUserById(dispute.contractor_id._id)
+              contractorName = userRes.data?.fullName || '—'
+            } catch (error) {
+              console.error('Error fetching contractor user:', error)
+            }
+          }
+
+          // Fetch freelancerName
+          if (dispute.freelancer_id) {
+            try {
+              const userRes = await userService.getUserById(dispute.freelancer_id._id)
+              freelancerName = userRes.data?.fullName || '—'
+            } catch (error) {
+              console.error('Error fetching freelancer user:', error)
+            }
+          }
+
+          // Fetch adminName
+          if (dispute.admin_id) {
+            try {
+              const userRes = await userService.getUserById(dispute.admin_id._id)
+              adminName = userRes.data?.fullName || '—'
+            } catch (error) {
+              console.error('Error fetching admin user:', error)
+            }
+          }
+
+          return {
+            ...dispute,
+            adminName,
+            freelancerName,
+            contractorName
+          }
+        })
+      )
+
+      setDisputes(contractsWithDetails)
+      if (payload.pagination) {
+        setQuery((prev) => ({
+          ...prev,
+          page: payload.pagination.page,
+          limit: payload.pagination.limit,
+          pagination: payload.pagination
+        }))
+      }
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Failed to fetch contracts:', error)
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    Promise.resolve().then(() => fetchDisputes())
+  }, [query.page, query.limit, query.contract_id, query.status])
 
   return (
     <Space vertical size="large" style={{ width: '100%' }}>
@@ -82,50 +164,21 @@ const DisputePage = () => {
 
       <Card>
         <Space wrap style={{ marginBottom: 16 }}>
-          <Input.Search
-            allowClear
-            placeholder="Mã, dự án, tóm tắt…"
-            onSearch={setSearch}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ width: 320 }}
-          />
-          <Select
-            value={status}
-            onChange={setStatus}
-            style={{ width: 200 }}
-            options={[
-              { label: 'Mọi trạng thái', value: 'all' },
-              ...(Object.keys(DISPUTE_STATUS_LABEL) as DisputeStatus[]).map((k) => ({
-                label: DISPUTE_STATUS_LABEL[k],
-                value: k
-              }))
-            ]}
-          />
+          <AppFilters filters={DisputeFilters} onChange={handleGetValueFilter} />
         </Space>
-        <Table rowKey="id" columns={columns} dataSource={filtered} pagination={{ pageSize: 8 }} scroll={{ x: 1220 }} />
-      </Card>
 
-      <DetailDrawer
-        open={!!detail}
-        onClose={() => setDetail(null)}
-        title={detail ? `Tranh chấp: ${detail.code}` : 'Chi tiết'}
-        width={560}
-      >
-        {detail && (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Mã vụ">{detail.code}</Descriptions.Item>
-            <Descriptions.Item label="Dự án">{detail.projectTitle}</Descriptions.Item>
-            <Descriptions.Item label="Mã dự án">{detail.projectCode}</Descriptions.Item>
-            <Descriptions.Item label="Chủ dự án">{detail.clientName}</Descriptions.Item>
-            <Descriptions.Item label="Nhà thầu">{detail.freelancerName}</Descriptions.Item>
-            <Descriptions.Item label="Tóm tắt">{detail.summary}</Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              <Tag color={STATUS_COLOR[detail.status]}>{DISPUTE_STATUS_LABEL[detail.status]}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Mở lúc">{dayjs(detail.openedAt).format('DD/MM/YYYY HH:mm')}</Descriptions.Item>
-          </Descriptions>
-        )}
-      </DetailDrawer>
+        <TableDisputes
+          loading={isLoading}
+          page={query.page}
+          pageSize={query.limit}
+          total={query?.pagination?.total || 0}
+          disputes={disputes}
+          onPageChange={handleChangePageSizeTable}
+          onDelete={() => {}}
+          onEdit={() => {}}
+          onView={handleViewDetail}
+        />
+      </Card>
     </Space>
   )
 }

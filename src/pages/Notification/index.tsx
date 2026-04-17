@@ -1,15 +1,16 @@
-import { useMemo, useState } from 'react'
-import { Button, Card, Descriptions, Progress, Space, Table, Tag, Typography } from 'antd'
+import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button, Card, Progress, Space, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { EyeOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { DetailDrawer } from '@/components/DetailDrawer'
 import {
   MOCK_ADMIN_NOTIFICATIONS,
   NOTIFICATION_AUDIENCE_LABEL,
   type MockAdminNotification,
   type NotificationAudience
 } from '@/mock/notifications.mock'
+import { NOTIFICATION_PAGE } from '@/constants'
 
 const { Title, Text } = Typography
 
@@ -20,7 +21,11 @@ const AUDIENCE_COLOR: Record<NotificationAudience, string> = {
 }
 
 const NotificationPage = () => {
-  const [detail, setDetail] = useState<MockAdminNotification | null>(null)
+  const navigate = useNavigate()
+
+  const handleViewDetail = (record: MockAdminNotification) => {
+    navigate(`${NOTIFICATION_PAGE}/${record.id}`)
+  }
 
   const columns: ColumnsType<MockAdminNotification> = useMemo(
     () => [
@@ -53,13 +58,13 @@ const NotificationPage = () => {
         width: 110,
         fixed: 'right',
         render: (_: unknown, record: MockAdminNotification) => (
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => setDetail(record)}>
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleViewDetail(record)}>
             Chi tiết
           </Button>
         )
       }
     ],
-    []
+    [handleViewDetail]
   )
 
   return (
@@ -82,27 +87,6 @@ const NotificationPage = () => {
           scroll={{ x: 1020 }}
         />
       </Card>
-
-      <DetailDrawer
-        open={!!detail}
-        onClose={() => setDetail(null)}
-        title={detail ? detail.title : 'Chi tiết thông báo'}
-        width={520}
-      >
-        {detail && (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Tiêu đề">{detail.title}</Descriptions.Item>
-            <Descriptions.Item label="Đối tượng">
-              <Tag color={AUDIENCE_COLOR[detail.audience]}>{NOTIFICATION_AUDIENCE_LABEL[detail.audience]}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Nội dung">{detail.body}</Descriptions.Item>
-            <Descriptions.Item label="Gửi lúc">{dayjs(detail.sentAt).format('DD/MM/YYYY HH:mm')}</Descriptions.Item>
-            <Descriptions.Item label="Tỷ lệ đọc (mock)">
-              <Progress percent={detail.readRatePercent} />
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </DetailDrawer>
     </Space>
   )
 }

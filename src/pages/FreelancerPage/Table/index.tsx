@@ -1,6 +1,7 @@
 import TableAction from '@/components/common/TableAction'
 import type { UserResponse } from '@/types/user'
 import { Table, Tag } from 'antd'
+import type { ColumnType } from 'antd/es/table'
 
 type Props = {
   freelancers: UserResponse[]
@@ -10,22 +11,11 @@ type Props = {
   loading: boolean
   onPageChange: (page: number, pageSize: number) => void
   onDelete: (id: string) => void
-  onEdit: (id: string) => void
   onView: (record: UserResponse) => void
 }
 
-const TableFreelancers = ({
-  freelancers,
-  page,
-  pageSize,
-  loading,
-  onPageChange,
-  total,
-  onView,
-  onDelete,
-  onEdit
-}: Props) => {
-  const columns = [
+const TableFreelancers = ({ freelancers, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
+  const columns: ColumnType<UserResponse>[] = [
     {
       title: 'Mã',
       dataIndex: '_id',
@@ -45,12 +35,16 @@ const TableFreelancers = ({
     {
       title: 'Số ĐT',
       dataIndex: 'phone',
-      key: 'phone'
+      key: 'phone',
+      width: 150,
+      align: 'center'
     },
     {
       title: 'Xác thực',
       dataIndex: 'isVerified',
       key: 'isVerified',
+      width: 150,
+      align: 'center',
       render: (isVerified: boolean) =>
         isVerified ? <Tag color="blue">Đã xác minh</Tag> : <Tag color="warning">Chưa xác minh</Tag>
     },
@@ -58,22 +52,20 @@ const TableFreelancers = ({
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
+      width: 150,
+      align: 'center',
       render: (status: string) => (status === 'active' ? <Tag color="green">Hoạt động</Tag> : <Tag color="red">Ẩn</Tag>)
     },
     {
       title: 'Hành động',
       dataIndex: 'actions',
       key: 'actions',
+      width: 110,
+      fixed: 'right',
+      align: 'center',
       render: (_: any, record: UserResponse) => (
         <>
-          <TableAction
-            showView
-            showEdit
-            showDelete
-            onView={() => onView(record)}
-            onEdit={() => onEdit(record._id)}
-            onDelete={() => onDelete(record._id)}
-          />
+          <TableAction showView showDelete onView={() => onView(record)} onDelete={() => onDelete(record._id)} />
         </>
       )
     }
@@ -92,6 +84,7 @@ const TableFreelancers = ({
         showSizeChanger: true,
         onChange: onPageChange
       }}
+      scroll={{ x: 1220 }}
     />
   )
 }

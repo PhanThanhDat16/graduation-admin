@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons'
-import { Popconfirm, Space, Tooltip } from 'antd'
+import { Button, Popconfirm, Space, Tooltip } from 'antd'
 import type React from 'react'
 
 type ExtraAction = {
@@ -25,7 +25,10 @@ const TableAction = ({ showEdit, showDelete, showView, onEdit, onDelete, onView 
       <Space>
         {showView && (
           <Tooltip title="Xem chi tiết">
-            <EyeOutlined
+            <Button
+              type="link"
+              size="small"
+              icon={<EyeOutlined />}
               style={{
                 color: '#52c41a',
                 cursor: 'pointer'
@@ -37,7 +40,10 @@ const TableAction = ({ showEdit, showDelete, showView, onEdit, onDelete, onView 
 
         {showEdit && (
           <Tooltip title="Chỉnh sửa">
-            <EditOutlined
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
               style={{
                 color: '#1677ff',
                 cursor: 'pointer'
@@ -55,7 +61,10 @@ const TableAction = ({ showEdit, showDelete, showView, onEdit, onDelete, onView 
             cancelText="Hủy"
             onConfirm={onDelete}
           >
-            <DeleteOutlined
+            <Button
+              type="link"
+              size="small"
+              icon={<DeleteOutlined />}
               style={{
                 color: 'red',
                 cursor: 'pointer'
