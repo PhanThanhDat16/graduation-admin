@@ -20,18 +20,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true })
       const res = await authService.logIn(email, password)
-      get().setAccessToken(res.data.data.accessToken)
 
       if (res.data.data.user.role !== 'admin' && res.data.data.user.role !== 'staff') {
-        get().noPromise()
-        return
+        await get().logoutUnauthorized()
+        return null
       }
+      get().setAccessToken(res.data.data.accessToken)
 
       message.success('Đăng nhập thành công!')
-      get().fetchMe()
-    } catch (error) {
-      console.error(error)
-      message.error('Đăng nhập không thành công!')
+      await get().fetchMe()
+      return res.data.data.user
+    } catch {
+      message.error('Email hoặc mật khẩu không đúng!')
+      return null
     } finally {
       set({ loading: false })
     }
@@ -52,7 +53,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       set({ loading: true })
       const res = await authService.fetchMe()
-      set({ user: res.data.data })
+      const userData = res.data.data
+      if (userData.role !== 'admin' && userData.role !== 'staff') {
+        await get().logoutUnauthorized()
+        return
+      }
+
+      set({ user: userData })
     } catch (error) {
       console.error(error)
       set({ user: null, accessToken: null })
@@ -72,6 +79,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (!user) {
         await fetchMe()
+      } else if (user.role !== 'admin' && user.role !== 'staff') {
+        await get().logoutUnauthorized()
       }
     } catch (error) {
       if (error === 401) {
@@ -83,13 +92,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         get().clearState()
         return
       }
-      message.error('Có lỗi xảy ra, vui lòng thử lại!')
     } finally {
       set({ loading: false })
     }
   },
 
-  noPromise: async () => {
+  logoutUnauthorized: async () => {
     try {
       await authService.logOut()
       get().clearState()

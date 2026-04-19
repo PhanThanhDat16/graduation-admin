@@ -1,6 +1,6 @@
 import type { Pagination } from '.'
 
-export type ProjectStatus = 'open' | 'closed' | 'completed' | 'canceled'
+export type ProjectStatus = 'open' | 'closed' | 'draft'
 
 export type ProjectResponse = {
   _id: string
@@ -31,5 +31,12 @@ export type ProjectQuery = {
   limit: number
   keyword?: string
   status?: string
+  sortBy?: string
+  sortOrder?: string
+  contractorId?: string
+  category?: string
+  budgetMin?: number
+  budgetMax?: number
+  likes?: number
   pagination?: Pagination
 }

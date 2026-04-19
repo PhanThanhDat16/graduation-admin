@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Alert, Button, Card, Descriptions, Input, Select, Space, Table, Tag, Typography } from 'antd'
+import { Alert, Button, Card, Input, Select, Space, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { EyeOutlined } from '@ant-design/icons'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
-import { DetailDrawer } from '@/components/DetailDrawer'
 import {
   MOCK_PROJECT_TRANSACTIONS,
   PROJECT_TX_STATUS_LABEL,
@@ -13,7 +12,7 @@ import {
   type ProjectTxStatus,
   type ProjectTxType
 } from '@/mock/projectTransactions.mock'
-import { WALLET_PAGE } from '@/constants'
+import { WALLET_PAGE, TRANSACTION_PAGE } from '@/constants'
 import { formatVnd } from '@/utils/formatCurrency'
 
 const { Title, Text } = Typography
@@ -33,9 +32,9 @@ const TX_STATUS_COLOR: Record<ProjectTxStatus, string> = {
 }
 
 const TransactionPage = () => {
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [type, setType] = useState<ProjectTxType | 'all'>('all')
-  const [detail, setDetail] = useState<MockProjectTransaction | null>(null)
 
   const filtered = useMemo(() => {
     return MOCK_PROJECT_TRANSACTIONS.filter((t) => {
@@ -50,6 +49,10 @@ const TransactionPage = () => {
       return matchText && matchType
     })
   }, [search, type])
+
+  const handleViewDetail = (record: MockProjectTransaction) => {
+    navigate(`${TRANSACTION_PAGE}/${record.id}`)
+  }
 
   const columns: ColumnsType<MockProjectTransaction> = useMemo(
     () => [
@@ -97,13 +100,13 @@ const TransactionPage = () => {
         fixed: 'right',
         width: 110,
         render: (_: unknown, record: MockProjectTransaction) => (
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => setDetail(record)}>
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleViewDetail(record)}>
             Chi tiết
           </Button>
         )
       }
     ],
-    []
+    [handleViewDetail]
   )
 
   return (
@@ -158,32 +161,6 @@ const TransactionPage = () => {
           scroll={{ x: 1320 }}
         />
       </Card>
-
-      <DetailDrawer
-        open={!!detail}
-        onClose={() => setDetail(null)}
-        title={detail ? `Giao dịch: ${detail.code}` : 'Chi tiết'}
-        width={560}
-      >
-        {detail && (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Mã giao dịch">{detail.code}</Descriptions.Item>
-            <Descriptions.Item label="Mã dự án">{detail.projectCode}</Descriptions.Item>
-            <Descriptions.Item label="Hợp đồng">{detail.contractCode ?? '—'}</Descriptions.Item>
-            <Descriptions.Item label="Loại">
-              <Tag color={TYPE_COLOR[detail.type]}>{PROJECT_TX_TYPE_LABEL[detail.type]}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Số tiền">{formatVnd(detail.amountVnd)}</Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              <Tag color={TX_STATUS_COLOR[detail.status]}>{PROJECT_TX_STATUS_LABEL[detail.status]}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Mô tả / ghi chú">{detail.note}</Descriptions.Item>
-            <Descriptions.Item label="Thời gian">
-              {dayjs(detail.createdAt).format('DD/MM/YYYY HH:mm:ss')}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </DetailDrawer>
     </Space>
   )
 }

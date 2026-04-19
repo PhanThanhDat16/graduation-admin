@@ -13,5 +13,5 @@ export interface AuthState {
   logOut: () => Promise<void>
   fetchMe: () => Promise<void>
   refresh: () => Promise<void>
-  noPromise: () => Promise<void>
+  logoutUnauthorized: () => Promise<void>
 }

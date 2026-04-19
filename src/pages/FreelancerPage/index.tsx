@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Card, Descriptions, Space, Tag, Typography } from 'antd'
-import dayjs from 'dayjs'
-import { DetailDrawer } from '@/components/DetailDrawer'
+import { useNavigate } from 'react-router-dom'
+import { Card, Space, Typography } from 'antd'
 import { userService } from '@/apis/userService'
-import type { FreelancerQuery, UserResponse } from '@/types/user'
+import type { UserQuery, UserResponse } from '@/types/user'
 import TableFreelancers from './Table'
 import AppFilters, { type FilterConfig } from '@/components/common/AppFilters'
+import { FREELANCER_PAGE } from '@/constants'
 
 const { Title, Text } = Typography
 
@@ -31,18 +31,69 @@ const FreelancerFilters: FilterConfig[] = [
       }
     ],
     label: 'Trạng thái'
+  },
+  {
+    type: 'select',
+    name: 'isVerified',
+    placeholder: 'Trạng thái',
+    options: [
+      {
+        label: 'Đã xác minh',
+        value: 'true'
+      },
+      {
+        label: 'Chưa xác minh',
+        value: 'false'
+      }
+    ],
+    label: 'Xác thực'
+  },
+  {
+    type: 'select',
+    name: 'sortBy',
+    placeholder: 'Sắp xếp tên, ngày tạo...',
+    options: [
+      {
+        label: 'Tên',
+        value: 'fullName'
+      },
+      {
+        label: 'Ngày tạo',
+        value: ''
+      }
+    ],
+    label: 'Sắp xếp theo'
+  },
+  {
+    type: 'select',
+    name: 'sortOrder',
+    placeholder: 'Tăng dần, giảm dần',
+    options: [
+      {
+        label: 'Tăng dần',
+        value: 'asc'
+      },
+      {
+        label: 'Giảm dần',
+        value: 'desc'
+      }
+    ],
+    label: 'Thứ tự'
   }
 ]
 
 const FreelancerPage = () => {
-  const [detail, setDetail] = useState<UserResponse | null>(null)
+  const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
-  const [query, setQuery] = useState<FreelancerQuery>({
+  const [query, setQuery] = useState<UserQuery>({
     role: 'freelancer',
     keyword: '',
     status: '',
     page: 1,
-    limit: 10
+    limit: 10,
+    sortBy: '',
+    sortOrder: '',
+    isVerified: undefined
   })
   const [freelancers, setFreelancers] = useState<UserResponse[]>([])
 
@@ -51,7 +102,10 @@ const FreelancerPage = () => {
       ...prev,
       page: 1,
       keyword: values.keyword || '',
-      status: values.status || ''
+      status: values.status || '',
+      sortBy: values.sortBy || '',
+      sortOrder: values.sortOrder || '',
+      isVerified: values.isVerified || undefined
     }))
   }
 
@@ -64,7 +118,7 @@ const FreelancerPage = () => {
   }
 
   const handleViewDetail = (record: UserResponse) => {
-    setDetail(record)
+    navigate(`${FREELANCER_PAGE}/${record._id}`)
   }
 
   const fetchFreelancers = async () => {
@@ -93,10 +147,10 @@ const FreelancerPage = () => {
 
   useEffect(() => {
     Promise.resolve().then(() => fetchFreelancers())
-  }, [query.page, query.limit, query.keyword, query.status])
+  }, [query.page, query.limit, query.keyword, query.status, query.sortOrder, query.sortBy, query.isVerified])
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
       <div>
         <Title level={3} style={{ margin: 0 }}>
           Danh sách Freelancer
@@ -117,69 +171,9 @@ const FreelancerPage = () => {
           freelancers={freelancers}
           onPageChange={handleChangePageSizeTable}
           onDelete={() => {}}
-          onEdit={() => {}}
           onView={handleViewDetail}
         />
       </Card>
-
-      <DetailDrawer
-        open={!!detail}
-        onClose={() => setDetail(null)}
-        title={detail ? `Freelancer: ${detail.fullName}` : 'Chi tiết'}
-        width={520}
-      >
-        {detail && (
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            <div style={{ textAlign: 'center', marginBottom: 16 }}>
-              {detail.avatarUrl ? (
-                <img
-                  src={detail.avatarUrl}
-                  alt={detail.fullName}
-                  style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: 100,
-                    height: 100,
-                    borderRadius: '50%',
-                    background: '#f0f0f0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto'
-                  }}
-                >
-                  <Text type="secondary">No Avatar</Text>
-                </div>
-              )}
-            </div>
-
-            <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="Mã user">{detail._id}</Descriptions.Item>
-              <Descriptions.Item label="Tên hiển thị">{detail.fullName}</Descriptions.Item>
-              <Descriptions.Item label="Email">{detail.email}</Descriptions.Item>
-              <Descriptions.Item label="Số điện thoại">{detail.phone || 'Chưa cập nhật'}</Descriptions.Item>
-              <Descriptions.Item label="Giới tính">
-                {detail.gender === 'male' ? 'Nam' : detail.gender === 'female' ? 'Nữ' : 'Khác'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Ngày sinh">
-                {detail.birthday ? dayjs(detail.birthday).format('DD/MM/YYYY') : 'Chưa cập nhật'}
-              </Descriptions.Item>
-              <Descriptions.Item label="Địa chỉ">{detail.address || 'Chưa cập nhật'}</Descriptions.Item>
-              <Descriptions.Item label="Trạng thái">
-                {detail.status === 'active' ? <Tag color="success">Hoạt động</Tag> : <Tag color="error">Vô hiệu</Tag>}
-              </Descriptions.Item>
-              <Descriptions.Item label="Xác minh">
-                {detail.isVerified ? <Tag color="blue">Đã xác minh</Tag> : <Tag color="warning">Chưa xác minh</Tag>}
-              </Descriptions.Item>
-              <Descriptions.Item label="Tham gia">
-                {dayjs(detail.createdAt).format('DD/MM/YYYY HH:mm')}
-              </Descriptions.Item>
-            </Descriptions>
-          </Space>
-        )}
-      </DetailDrawer>
     </Space>
   )
 }

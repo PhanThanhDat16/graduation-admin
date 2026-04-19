@@ -1,12 +1,14 @@
 import type { Pagination } from '.'
 
+export type DisputeStatus = 'open' | 'negotiating' | 'admin_review' | 'resolved' | 'auto_closed'
+
 export type DisputeResponse = {
   _id: string
   contract_id: { _id: string }
   contractor_id: { _id: string }
   freelancer_id: { _id: string }
   opened_by: { _id: string }
-  status: ['open', 'negotiating', 'admin_review', 'resolved', 'auto_closed']
+  status: DisputeStatus
   resolution_type: ['extend', 'cancel', 'split', 'auto_close']
   contractor_reason: string
   freelancer_reason: string
@@ -33,7 +35,7 @@ export type DisputeListResponse = {
 export type DisputeQuery = {
   page: number
   limit: number
-  search?: string
-  meta?: Pagination
+  contract_id?: string
   status?: string
+  pagination?: Pagination
 }

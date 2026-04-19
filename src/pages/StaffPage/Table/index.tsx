@@ -1,6 +1,8 @@
 import TableAction from '@/components/common/TableAction'
 import type { UserResponse } from '@/types/user'
 import { Table, Tag } from 'antd'
+import type { ColumnType } from 'antd/es/table'
+import dayjs from 'dayjs'
 
 type Props = {
   staffList: UserResponse[]
@@ -10,12 +12,11 @@ type Props = {
   loading: boolean
   onPageChange: (page: number, pageSize: number) => void
   onDelete: (id: string) => void
-  onEdit: (id: string) => void
   onView: (record: UserResponse) => void
 }
 
-const TableStaff = ({ staffList, page, pageSize, loading, onPageChange, total, onView, onDelete, onEdit }: Props) => {
-  const columns = [
+const TableStaff = ({ staffList, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
+  const columns: ColumnType<UserResponse>[] = [
     {
       title: 'Mã',
       dataIndex: '_id',
@@ -28,22 +29,38 @@ const TableStaff = ({ staffList, page, pageSize, loading, onPageChange, total, o
       render: (text: string) => <b>{text}</b>
     },
     {
+      title: 'Giới tính',
+      dataIndex: 'gender',
+      key: 'gender',
+      width: 100,
+      align: 'center',
+      render: (text: string) => <b>{text === 'male' ? 'Nam' : 'Nữ'}</b>
+    },
+    {
+      title: 'Ngày sinh',
+      dataIndex: 'birthday',
+      key: 'birthday',
+      width: 130,
+      render: (text: string) => <b>{dayjs(text).format('DD/MM/YYYY')}</b>
+    },
+    {
       title: 'Email',
       dataIndex: 'email',
       key: 'email'
     },
     {
-      title: 'Vai trò',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role: string) => (
-        <Tag color={role === 'admin' ? 'red' : 'blue'}>{role === 'admin' ? 'Quản trị viên' : 'Nhân viên'}</Tag>
-      )
+      title: 'Số ĐT',
+      dataIndex: 'phone',
+      key: 'phone',
+      align: 'center',
+      width: 150
     },
     {
       title: 'Xác thực',
       dataIndex: 'isVerified',
       key: 'isVerified',
+      width: 150,
+      align: 'center',
       render: (isVerified: boolean) =>
         isVerified ? <Tag color="blue">Đã xác minh</Tag> : <Tag color="warning">Chưa xác minh</Tag>
     },
@@ -51,22 +68,20 @@ const TableStaff = ({ staffList, page, pageSize, loading, onPageChange, total, o
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
+      width: 150,
+      align: 'center',
       render: (status: string) => (status === 'active' ? <Tag color="green">Hoạt động</Tag> : <Tag color="red">Ẩn</Tag>)
     },
     {
       title: 'Hành động',
       dataIndex: 'actions',
       key: 'actions',
+      width: 110,
+      align: 'center',
+      fixed: 'right',
       render: (_: any, record: UserResponse) => (
         <>
-          <TableAction
-            showView
-            showEdit
-            showDelete
-            onView={() => onView(record)}
-            onEdit={() => onEdit(record._id)}
-            onDelete={() => onDelete(record._id)}
-          />
+          <TableAction showView showDelete onView={() => onView(record)} onDelete={() => onDelete(record._id)} />
         </>
       )
     }
@@ -85,6 +100,7 @@ const TableStaff = ({ staffList, page, pageSize, loading, onPageChange, total, o
         showSizeChanger: true,
         onChange: onPageChange
       }}
+      scroll={{ x: 1220 }}
     />
   )
 }

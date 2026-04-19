@@ -1,63 +1,67 @@
 import TableAction from '@/components/common/TableAction'
-import type { ProjectResponse, ProjectStatus } from '@/types/project'
+import type { ContractResponse, ContractStatus } from '@/types/contract'
 import { Table, Tag } from 'antd'
 import type { ColumnType } from 'antd/es/table'
 
 type Props = {
-  projects: ProjectResponse[]
+  contracts: ContractResponse[]
   total: number
   page: number
   pageSize: number
   loading: boolean
   onPageChange: (page: number, pageSize: number) => void
   onDelete: (id: string) => void
-  onView: (record: ProjectResponse) => void
+  onView: (record: ContractResponse) => void
 }
 
-const LABEL_STATUS: Record<ProjectStatus, string> = {
-  open: 'Mở đăng ký',
-  closed: 'Đóng đăng ký',
-  draft: 'Nháp'
+const LABEL_STATUS: Record<ContractStatus, string> = {
+  draft: 'Nháp',
+  pending: 'Đang chờ duyệt',
+  waiting_payment: 'Chờ thanh toán',
+  running: 'Đang thi công',
+  submitted: 'Đã nộp',
+  completed: 'Đã hoàn thành',
+  dispute: 'Tranh chấp',
+  cancelled: 'Đã hủy'
 }
 
-const COLOR_STATUS: Record<ProjectStatus, string> = {
-  open: 'success',
-  closed: 'error',
-  draft: 'defaul'
+const COLOR_STATUS: Record<ContractStatus, string> = {
+  draft: 'default',
+  pending: 'yellow',
+  waiting_payment: 'orange',
+  running: 'success',
+  submitted: 'cyan',
+  completed: 'processing',
+  dispute: 'magenta',
+  cancelled: 'error'
 }
 
-const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
-  const columns: ColumnType<ProjectResponse>[] = [
+const TableContracts = ({ contracts, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
+  const columns: ColumnType<ContractResponse>[] = [
     {
       title: 'Mã',
       dataIndex: '_id',
       key: '_id'
     },
     {
-      title: 'Tên dự án',
-      dataIndex: 'title',
-      key: 'title'
+      title: 'Dự án',
+      dataIndex: 'projectName',
+      key: 'projectName'
     },
     {
-      title: 'Chủ dự án',
+      title: 'Chủ đầu tư',
       dataIndex: 'contractorName',
-      key: 'contractorName',
-      render: (text: string) => <b>{text}</b>
+      key: 'contractorName'
     },
     {
-      title: 'Lượt thích',
-      dataIndex: 'likes',
-      key: 'likes',
-      width: 100,
-      align: 'right',
-      render: (number: number) => {
-        return number.toLocaleString('vi-VN')
-      }
+      title: 'Nhà thầu',
+      dataIndex: 'freelancerName',
+      key: 'freelancerName'
     },
     {
-      title: 'Ngân sách tối thiểu (VND)',
-      dataIndex: 'budgetMin',
-      key: 'budgetMin',
+      title: 'Tổng giá trị (VND)',
+      dataIndex: 'total_amount',
+      key: 'total_amount',
       width: 200,
       align: 'end',
       render: (number: number) => {
@@ -65,9 +69,9 @@ const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total,
       }
     },
     {
-      title: 'Ngân sách tối đa (VND)',
-      dataIndex: 'budgetMax',
-      key: 'budgetMax',
+      title: 'Phí nền tảng (VND)',
+      dataIndex: 'admin_fee',
+      key: 'admin_fee',
       width: 200,
       align: 'end',
       render: (number: number) => {
@@ -80,18 +84,18 @@ const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total,
       key: 'status',
       width: 150,
       align: 'center',
-      render: (status: ProjectStatus) => {
+      render: (status: ContractStatus) => {
         return <Tag color={COLOR_STATUS[status]}>{LABEL_STATUS[status]}</Tag>
       }
     },
     {
       title: 'Hành động',
       dataIndex: 'actions',
-      key: 'actions',
-      width: 110,
       fixed: 'right',
+      width: 110,
+      key: 'actions',
       align: 'center',
-      render: (_: any, record: ProjectResponse) => (
+      render: (_: any, record: ContractResponse) => (
         <>
           <TableAction showView showDelete onView={() => onView(record)} onDelete={() => onDelete(record._id)} />
         </>
@@ -102,7 +106,7 @@ const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total,
   return (
     <Table
       columns={columns}
-      dataSource={projects}
+      dataSource={contracts}
       loading={loading}
       rowKey={'_id'}
       pagination={{
@@ -117,4 +121,4 @@ const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total,
   )
 }
 
-export default TableProjects
+export default TableContracts

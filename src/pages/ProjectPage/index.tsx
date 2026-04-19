@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Card, Col, Descriptions, Row, Space, Statistic, Tag, Typography, theme } from 'antd'
-import { CheckCircleOutlined, FolderOpenOutlined, PlayCircleOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
-import { DetailDrawer } from '@/components/DetailDrawer'
-import { formatVnd } from '@/utils/formatCurrency'
+import { useNavigate } from 'react-router-dom'
+import { Card, Col, Row, Space, Statistic, Typography, theme } from 'antd'
+import { CheckCircleOutlined, CloseCircleOutlined, FolderOpenOutlined, PlayCircleOutlined } from '@ant-design/icons'
 import { projectService } from '@/apis/projectService'
-import { applicationService } from '@/apis/applicationService'
 import { userService } from '@/apis/userService'
 import type { ProjectQuery, ProjectResponse } from '@/types/project'
 import type { FilterConfig } from '@/components/common/AppFilters'
 import AppFilters from '@/components/common/AppFilters'
 import TableProjects from './Table'
+import { PROJECT_PAGE } from '@/constants'
 
 const { Title, Text } = Typography
 
@@ -27,44 +25,99 @@ const ProjectFilters: FilterConfig[] = [
     placeholder: 'Trạng thái',
     options: [
       {
-        label: 'Hoạt động',
+        label: 'Mở đăng ký',
         value: 'open'
       },
       {
-        label: 'Đã giao',
+        label: 'Đóng đăng ký',
         value: 'closed'
       },
       {
-        label: 'Hoàn thành',
-        value: 'completed'
-      },
-      {
-        label: 'Đã hủy',
-        value: 'canceled'
+        label: 'Đang nháp',
+        value: 'draft'
       }
     ],
     label: 'Trạng thái'
+  },
+  {
+    type: 'input',
+    name: 'budgetMin',
+    placeholder: 'Ngân sách tối thiểu...',
+    label: 'Ngân sách tối thiểu'
+  },
+  {
+    type: 'input',
+    name: 'budgetMax',
+    placeholder: 'Ngân sách tối đa...',
+    label: 'Ngân sách tối đa'
+  },
+  {
+    type: 'select',
+    name: 'sortBy',
+    placeholder: 'Sắp xếp theo...',
+    options: [
+      {
+        label: 'Tên dự án',
+        value: 'title'
+      },
+      {
+        label: 'Ngày tạo',
+        value: ''
+      },
+      {
+        label: 'Lượt thích',
+        value: 'likes'
+      }
+    ],
+    label: 'Sắp xếp theo'
+  },
+  {
+    type: 'select',
+    name: 'sortOrder',
+    placeholder: 'Tăng dần, giảm dần',
+    options: [
+      {
+        label: 'Tăng dần',
+        value: 'asc'
+      },
+      {
+        label: 'Giảm dần',
+        value: 'desc'
+      }
+    ],
+    label: 'Thứ tự'
   }
 ]
 
 const ProjectPage = () => {
   const { token } = theme.useToken()
-  const [detail, setDetail] = useState<ProjectResponse | null>(null)
+  const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [query, setQuery] = useState<ProjectQuery>({
     keyword: '',
     status: '',
     page: 1,
-    limit: 10
+    limit: 10,
+    sortBy: '',
+    sortOrder: '',
+    category: '',
+    budgetMin: undefined,
+    budgetMax: undefined
   })
   const [projects, setProjects] = useState<ProjectResponse[]>([])
+  const [initProject, setInitProject] = useState<ProjectResponse[]>([])
 
   const handleGetValueFilter = (values: Record<string, any>) => {
     setQuery((prev) => ({
       ...prev,
       page: 1,
       keyword: values.keyword || '',
-      status: values.status || ''
+      status: values.status || '',
+      sortBy: values.sortBy || '',
+      sortOrder: values.sortOrder || '',
+      category: values.category || '',
+      budgetMin: values.budgetMin || undefined,
+      budgetMax: values.budgetMax || undefined
     }))
   }
 
@@ -80,18 +133,7 @@ const ProjectPage = () => {
 
       const projectsWithDetails = await Promise.all(
         projectsData.map(async (project) => {
-          let freelancerId = '—'
-          let freelancerName = '—'
           let contractorName = '—'
-
-          // Fetch freelancerId from applications
-          try {
-            const appRes = await applicationService.getApplicationByProjectId(project._id)
-            const appData = appRes.data
-            freelancerId = Array.isArray(appData) ? appData[0]?.freelancerId : appData?.freelancerId
-          } catch (error) {
-            console.error('Error fetching application:', error)
-          }
 
           // Fetch contractorName
           if (project.contractorId) {
@@ -103,24 +145,13 @@ const ProjectPage = () => {
             }
           }
 
-          // Fetch freelancerName
-          if (freelancerId && freelancerId !== '—') {
-            try {
-              const userRes = await userService.getUserById(freelancerId)
-              freelancerName = userRes.data?.fullName || '—'
-            } catch (error) {
-              console.error('Error fetching freelancer user:', error)
-            }
-          }
-
           return {
             ...project,
-            freelancerId: freelancerId || '—',
-            freelancerName,
             contractorName
           }
         })
       )
+      if (initProject.length === 0) setInitProject(projectsWithDetails)
 
       setProjects(projectsWithDetails)
       if (payload.pagination) {
@@ -131,6 +162,7 @@ const ProjectPage = () => {
           pagination: payload.pagination
         }))
       }
+
       setIsLoading(false)
     } catch (error) {
       setIsLoading(false)
@@ -148,10 +180,20 @@ const ProjectPage = () => {
 
   useEffect(() => {
     Promise.resolve().then(() => fetchProjects())
-  }, [query.page, query.limit, query.keyword, query.status])
+  }, [
+    query.page,
+    query.limit,
+    query.keyword,
+    query.status,
+    query.sortBy,
+    query.sortOrder,
+    query.category,
+    query.budgetMin,
+    query.budgetMax
+  ])
 
   const handleViewDetail = (record: ProjectResponse) => {
-    setDetail(record)
+    navigate(`${PROJECT_PAGE}/${record._id}`)
   }
 
   return (
@@ -164,31 +206,43 @@ const ProjectPage = () => {
       </div>
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={8}>
+        <Col xs={24} sm={6}>
           <Card>
-            <Statistic title="Tổng dự án" value={query?.pagination?.total || 0} prefix={<FolderOpenOutlined />} />
+            <Statistic title="Tổng dự án" value={initProject.length || 0} prefix={<FolderOpenOutlined />} />
           </Card>
         </Col>
-        <Col xs={24} sm={8}>
+        <Col xs={24} sm={6}>
           <Card>
             <Statistic
-              title="Đang mở / tuyển"
-              value={'stats.active'}
+              title="Đang mở đăng ký"
+              value={initProject.filter((project) => project.status === 'open').length || 0}
               prefix={<PlayCircleOutlined />}
+              styles={{
+                content: { color: token.colorSuccess }
+              }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card>
+            <Statistic
+              title="Đã đóng đăng ký"
+              value={initProject.filter((project) => project.status === 'closed').length || 0}
+              prefix={<CheckCircleOutlined />}
               styles={{
                 content: { color: token.colorPrimary }
               }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={8}>
+        <Col xs={24} sm={6}>
           <Card>
             <Statistic
-              title="Hoàn thành"
-              value={'stats.done'}
-              prefix={<CheckCircleOutlined />}
+              title="Nháp"
+              value={initProject.filter((project) => project.status === 'draft').length || 0}
+              prefix={<CloseCircleOutlined />}
               styles={{
-                content: { color: token.colorSuccess }
+                content: { color: token.colorWarningText }
               }}
             />
           </Card>
@@ -208,46 +262,9 @@ const ProjectPage = () => {
           projects={projects}
           onPageChange={handleChangePageSizeTable}
           onDelete={() => {}}
-          onEdit={() => {}}
           onView={handleViewDetail}
         />
       </Card>
-
-      <DetailDrawer
-        open={!!detail}
-        onClose={() => setDetail(null)}
-        title={detail ? `Dự án: ${detail._id}` : 'Chi tiết'}
-        width={560}
-      >
-        {detail && (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Mã dự án">{detail._id}</Descriptions.Item>
-            <Descriptions.Item label="Tiêu đề">{detail.title}</Descriptions.Item>
-            <Descriptions.Item label="Chủ dự án">
-              {detail.contractorName} ({detail.contractorId})
-            </Descriptions.Item>
-            <Descriptions.Item label="Nhà thầu">
-              {detail.freelancerName}{' '}
-              {detail.freelancerId && detail.freelancerId !== '—' ? `(${detail.freelancerId})` : ''}
-            </Descriptions.Item>
-            <Descriptions.Item label="Ngân sách tối đa">
-              {detail.budgetMax > 0 ? formatVnd(detail.budgetMax) : '—'}
-            </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              {detail.status === 'open' ? (
-                <Tag color="success">Hoạt động</Tag>
-              ) : detail.status === 'closed' ? (
-                <Tag color="processing">Đã giao</Tag>
-              ) : detail.status === 'completed' ? (
-                <Tag color="gold">Hoàn thành</Tag>
-              ) : (
-                <Tag color="error">Đã hủy</Tag>
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="Tạo lúc">{dayjs(detail.createdAt).format('DD/MM/YYYY HH:mm')}</Descriptions.Item>
-          </Descriptions>
-        )}
-      </DetailDrawer>
     </Space>
   )
 }

@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Alert, Button, Card, Descriptions, Input, Select, Space, Table, Tag, Typography } from 'antd'
+import { useNavigate } from 'react-router-dom'
+import { Alert, Button, Card, Input, Select, Space, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { EyeOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { DetailDrawer } from '@/components/DetailDrawer'
 import {
   MOCK_WALLET_OPERATIONS,
   WALLET_OP_STATUS_LABEL,
@@ -14,6 +14,7 @@ import {
   type WalletUserRole
 } from '@/mock/walletOperations.mock'
 import { formatVnd } from '@/utils/formatCurrency'
+import { WALLET_PAGE } from '@/constants'
 
 const { Title, Text } = Typography
 
@@ -39,10 +40,10 @@ const OP_STATUS_COLOR: Record<WalletOpStatus, string> = {
 }
 
 const WalletPage = () => {
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [type, setType] = useState<WalletOpType | 'all'>('all')
   const [role, setRole] = useState<WalletUserRole | 'all'>('all')
-  const [detail, setDetail] = useState<MockWalletOperation | null>(null)
 
   const filtered = useMemo(() => {
     return MOCK_WALLET_OPERATIONS.filter((w) => {
@@ -57,6 +58,10 @@ const WalletPage = () => {
       return matchText && matchType && matchRole
     })
   }, [search, type, role])
+
+  const handleViewDetail = (record: MockWalletOperation) => {
+    navigate(`${WALLET_PAGE}/${record.id}`)
+  }
 
   const columns: ColumnsType<MockWalletOperation> = useMemo(
     () => [
@@ -104,13 +109,13 @@ const WalletPage = () => {
         fixed: 'right',
         width: 110,
         render: (_: unknown, record: MockWalletOperation) => (
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => setDetail(record)}>
+          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleViewDetail(record)}>
             Chi tiết
           </Button>
         )
       }
     ],
-    []
+    [handleViewDetail]
   )
 
   return (
@@ -169,34 +174,6 @@ const WalletPage = () => {
           scroll={{ x: 1220 }}
         />
       </Card>
-
-      <DetailDrawer
-        open={!!detail}
-        onClose={() => setDetail(null)}
-        title={detail ? `GD ví: ${detail.code}` : 'Chi tiết'}
-        width={520}
-      >
-        {detail && (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Mã giao dịch">{detail.code}</Descriptions.Item>
-            <Descriptions.Item label="Người dùng">{detail.userDisplayName}</Descriptions.Item>
-            <Descriptions.Item label="Vai trò">
-              <Tag color={ROLE_COLOR[detail.userRole]}>{ROLE_LABEL[detail.userRole]}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Loại">
-              <Tag color={OP_COLOR[detail.type]}>{WALLET_OP_TYPE_LABEL[detail.type]}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Số tiền">{formatVnd(detail.amountVnd)}</Descriptions.Item>
-            <Descriptions.Item label="Kênh / cổng">{detail.channel}</Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              <Tag color={OP_STATUS_COLOR[detail.status]}>{WALLET_OP_STATUS_LABEL[detail.status]}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Thời gian">
-              {dayjs(detail.createdAt).format('DD/MM/YYYY HH:mm:ss')}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </DetailDrawer>
     </Space>
   )
 }

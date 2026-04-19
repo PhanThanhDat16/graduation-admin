@@ -24,36 +24,11 @@ export type UserListResponse = {
 export type UserQuery = {
   page: number
   limit: number
-  search?: string
-  meta?: Pagination
+  sortBy: string
+  sortOrder: string
+  role: string
   status?: string
-  gender?: string
   isVerified?: boolean
-}
-
-export type FreelancerQuery = {
-  role: string
-  page: number
-  limit: number
   keyword?: string
-  status?: string
-  pagination?: Pagination
-}
-
-export type ContractorQuery = {
-  role: string
-  page: number
-  limit: number
-  keyword?: string
-  status?: string
-  pagination?: Pagination
-}
-
-export type StaffQuery = {
-  role: string
-  page: number
-  limit: number
-  keyword?: string
-  status?: string
   pagination?: Pagination
 }

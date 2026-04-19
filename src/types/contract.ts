@@ -10,17 +10,6 @@ export type ContractStatus =
   | 'dispute'
   | 'cancelled'
 
-export const CONTRACT_STATUS_LABEL: Record<ContractStatus, string> = {
-  draft: 'Nháp',
-  pending: 'Đang chờ',
-  waiting_payment: 'Chờ thanh toán',
-  running: 'Đang thực hiện',
-  submitted: 'Đã nộp',
-  completed: 'Đã hoàn thành',
-  dispute: 'Tranh chấp',
-  cancelled: 'Đã hủy'
-}
-
 export type ContractResponse = {
   _id: string
   project_id: string
@@ -50,6 +39,10 @@ export type ContractResponse = {
   payment_info: PaymentInfo
   createdAt?: string
   updatedAt?: string
+  // Extra fields for display
+  projectName?: string
+  freelancerName?: string
+  contractorName?: string
 }
 
 export type PaymentInfo = {
@@ -68,7 +61,6 @@ export type ContractQuery = {
   page: number
   limit: number
   status?: string
-  contractor_id?: string
-  freelancer_id?: string
-  meta?: Pagination
+  keyword?: string
+  pagination?: Pagination
 }
