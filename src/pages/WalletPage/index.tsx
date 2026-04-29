@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Alert, Button, Card, Input, Select, Space, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
@@ -15,6 +15,7 @@ import {
 } from '@/mock/walletOperations.mock'
 import { formatVnd } from '@/utils/formatCurrency'
 import { WALLET_PAGE } from '@/constants'
+import { walletService } from '@/apis/walletService'
 
 const { Title, Text } = Typography
 
@@ -117,6 +118,19 @@ const WalletPage = () => {
     ],
     [handleViewDetail]
   )
+
+  const fetchData = async () => {
+    try {
+      const res = await walletService.getAllWithdrawRequests()
+      console.log(res.data)
+    } catch (error) {
+      console.error('Failed to fetch withdraw requests:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   return (
     <Space vertical size="large" style={{ width: '100%' }}>

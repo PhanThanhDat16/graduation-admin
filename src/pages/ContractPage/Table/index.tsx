@@ -16,7 +16,7 @@ type Props = {
 
 const LABEL_STATUS: Record<ContractStatus, string> = {
   draft: 'Nháp',
-  pending: 'Đang chờ duyệt',
+  pending_agreement: 'Đang chờ duyệt',
   waiting_payment: 'Chờ thanh toán',
   running: 'Đang thi công',
   submitted: 'Đã nộp',
@@ -27,7 +27,7 @@ const LABEL_STATUS: Record<ContractStatus, string> = {
 
 const COLOR_STATUS: Record<ContractStatus, string> = {
   draft: 'default',
-  pending: 'yellow',
+  pending_agreement: 'yellow',
   waiting_payment: 'orange',
   running: 'success',
   submitted: 'cyan',
@@ -45,18 +45,21 @@ const TableContracts = ({ contracts, page, pageSize, loading, onPageChange, tota
     },
     {
       title: 'Dự án',
-      dataIndex: 'projectName',
-      key: 'projectName'
+      dataIndex: 'project_id',
+      key: 'project_id',
+      render: (project_id: any) => project_id?.title || 'N/A'
     },
     {
       title: 'Chủ đầu tư',
-      dataIndex: 'contractorName',
-      key: 'contractorName'
+      dataIndex: 'contractor_id',
+      key: 'contractor_id',
+      render: (contractor_id: any) => contractor_id?.fullName || 'N/A'
     },
     {
       title: 'Nhà thầu',
-      dataIndex: 'freelancerName',
-      key: 'freelancerName'
+      dataIndex: 'freelancer_id',
+      key: 'freelancer_id',
+      render: (freelancer_id: any) => freelancer_id?.fullName || 'N/A'
     },
     {
       title: 'Tổng giá trị (VND)',

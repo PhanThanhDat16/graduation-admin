@@ -26,7 +26,7 @@ const COLOR_STATUS: Record<ProjectStatus, string> = {
   draft: 'defaul'
 }
 
-const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
+const TableWallets = ({ projects, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
   const columns: ColumnType<ProjectResponse>[] = [
     {
       title: 'Mã',
@@ -40,9 +40,9 @@ const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total,
     },
     {
       title: 'Chủ dự án',
-      dataIndex: 'contractorId',
-      key: 'contractorId',
-      render: (contractorId: { fullName?: string }) => <b>{contractorId?.fullName || '—'}</b>
+      dataIndex: 'contractorName',
+      key: 'contractorName',
+      render: (text: string) => <b>{text}</b>
     },
     {
       title: 'Lượt thích',
@@ -117,4 +117,4 @@ const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total,
   )
 }
 
-export default TableProjects
+export default TableWallets

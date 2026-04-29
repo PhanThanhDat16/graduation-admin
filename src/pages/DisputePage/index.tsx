@@ -175,7 +175,6 @@ const DisputePage = () => {
           disputes={disputes}
           onPageChange={handleChangePageSizeTable}
           onDelete={() => {}}
-          onEdit={() => {}}
           onView={handleViewDetail}
         />
       </Card>

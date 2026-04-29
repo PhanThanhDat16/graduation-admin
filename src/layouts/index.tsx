@@ -13,11 +13,11 @@ const MainLayout = () => {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout>
       <AppSidebar collapsed={collapsed} />
-      <Layout>
+      <Layout className="max-h-screen">
         <AppHeader collapsed={collapsed} onToggle={handleChange} />
-        <Content style={{ padding: 24, minHeight: 200, borderRadius: 8 }}>
+        <Content style={{ padding: 24, minHeight: 200, borderRadius: 8 }} className="overflow-auto">
           <Outlet />
         </Content>
       </Layout>
