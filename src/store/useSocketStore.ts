@@ -6,73 +6,53 @@ interface ISocketStore {
   isConnected: boolean
   connect: () => void
   disconnect: () => void
-  joinConversation: (groupId: string) => void
-  joinStaffGeneral: () => void
 }
 
 const SOCKET_URL = import.meta.env.VITE_SOCKETIO || ''
 
-export const useStoreSocketIO = create<ISocketStore>((set, get) => ({
+export const useStoreSocketIO = create<ISocketStore>((set) => ({
   socket: null,
   isConnected: false,
 
   connect: () => {
-    const { socket: existingSocket } = get()
-    if (existingSocket && existingSocket.connected) {
-      console.warn('Socket already connected')
-      return
-    }
+    set((state) => {
+      if (state.socket && state.socket.connected) {
+        console.warn('Socket already connected')
+        return state
+      }
 
-    const socket = io(SOCKET_URL, {
-      withCredentials: true,
-      transports: ['websocket']
+      const socket = io(SOCKET_URL)
+
+      let failedAttempts = 0
+
+      socket.on('connect', () => {
+        set({ socket, isConnected: true })
+
+        socket.emit('staff_room_general')
+        console.log('Socket IO Connected')
+        failedAttempts = 0
+      })
+
+      socket.on('connect_error', () => {
+        console.error('connect_error', failedAttempts)
+        failedAttempts += 1
+        if (failedAttempts >= 10) {
+          socket.disconnect()
+          console.error('Failed to connect 10 times. Socket disconnected.')
+        }
+      })
+
+      return { socket, isConnected: true }
     })
-
-    socket.on('connect', () => {
-      console.log('Socket connected:', socket.id)
-      set({ isConnected: true })
-    })
-
-    socket.on('disconnect', () => {
-      console.log('Socket disconnected')
-      set({ isConnected: false })
-    })
-
-    socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error)
-      set({ isConnected: false })
-    })
-
-    // Listen for notifications from server (e.g. when a guest starts a conversation)
-    socket.on('new_conversation', (data) => {
-      console.log('New conversation notification:', data)
-      // You can add logic here to show a toast or update chat list
-    })
-
-    set({ socket, isConnected: false })
   },
 
-  disconnect: () => {
-    const { socket } = get()
-    if (socket) {
-      socket.disconnect()
-      set({ socket: null, isConnected: false })
-    }
-  },
-
-  joinConversation: (groupId: string) => {
-    const { socket } = get()
-    if (socket && socket.connected) {
-      console.log(`Staff joining conversation: ${groupId}`)
-      socket.emit('join_conversation', { groupId })
-    }
-  },
-
-  joinStaffGeneral: () => {
-    const { socket } = get()
-    if (socket && socket.connected) {
-      console.log('Staff joining staff_room_general')
-      socket.emit('staff_room_general')
-    }
+  disconnect() {
+    set((state) => {
+      if (state.socket && state.socket.connected) {
+        state.socket.disconnect()
+        console.log('Socket disconnected')
+      }
+      return { socket: null, isConnected: false }
+    })
   }
 }))

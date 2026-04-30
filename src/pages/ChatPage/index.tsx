@@ -7,6 +7,7 @@ import { CHAT_PAGE } from '@/constants'
 import { chatService } from '@/apis/chatService'
 import type { ConversationResponse } from '@/types/chat'
 import { useStoreSocketIO } from '@/store/useSocketStore'
+import { emitJoinConversation, listenNewConversation } from '@/services/socketConversation'
 
 const { Title, Text } = Typography
 
@@ -14,15 +15,15 @@ const ChatPage = () => {
   const navigate = useNavigate()
   const { token } = theme.useToken()
   const [search, setSearch] = useState('')
-  const [selectedType, setSelectedType] = useState<string>('all')
+  const [selectedType, setSelectedType] = useState<string>('user_support')
   const [groups, setGroups] = useState<ConversationResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const { socket, connect, joinStaffGeneral } = useStoreSocketIO()
+  const { socket } = useStoreSocketIO()
 
   const fetchGroups = useCallback(async () => {
     setLoading(true)
     try {
-      const params = selectedType !== 'all' ? { type: selectedType } : undefined
+      const params = { type: selectedType }
       const res = await chatService.getAllConversations(params)
       const data = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : []
       setGroups(data)
@@ -39,26 +40,12 @@ const ChatPage = () => {
   }, [fetchGroups])
 
   useEffect(() => {
-    if (!socket) {
-      connect()
-    } else {
-      joinStaffGeneral()
-    }
-  }, [socket, connect, joinStaffGeneral])
+    if (!socket) return
 
-  useEffect(() => {
-    if (socket) {
-      const handleSocketUpdate = () => {
-        fetchGroups()
-      }
+    const cleanup = listenNewConversation(socket, fetchGroups)
 
-      socket.on('new_conversation', handleSocketUpdate)
-      socket.on('new_message', handleSocketUpdate)
-
-      return () => {
-        socket.off('new_conversation', handleSocketUpdate)
-        socket.off('new_message', handleSocketUpdate)
-      }
+    return () => {
+      cleanup && cleanup()
     }
   }, [socket, fetchGroups])
 
@@ -107,13 +94,16 @@ const ChatPage = () => {
   }
 
   const renderThreadItem = (item: ConversationResponse) => {
+    // Join conversation room to receive real-time updates
+    emitJoinConversation(socket, item._id)
+
     const displayInfo = getThreadDisplayInfo(item)
     const unreadCount = (item as any).unreadCount || 0
 
     return (
       <List.Item
         onClick={() => handleViewDetail(item)}
-        className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors p-4 rounded-lg mx-2"
+        className="p-4 mx-2 transition-colors rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
         style={{ borderBlockEnd: 'none' }}
       >
         <List.Item.Meta
@@ -123,7 +113,7 @@ const ChatPage = () => {
             </Badge>
           }
           title={
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <Text strong className={unreadCount > 0 ? 'text-blue-600' : ''}>
                 {displayInfo.title}
               </Text>
@@ -165,14 +155,13 @@ const ChatPage = () => {
         </div>
 
         <Card styles={{ body: { padding: '16px 0' } }}>
-          <div className="px-4 pb-4 border-b border-gray-100 dark:border-slate-700 mb-2">
-            <div className="flex flex-col md:flex-row justify-between gap-4">
+          <div className="px-4 pb-4 mb-2 border-b border-gray-100 dark:border-slate-700">
+            <div className="flex flex-col justify-between gap-4 md:flex-row">
               <Segmented
                 options={[
-                  { label: 'Tất cả', value: 'all' },
-                  { label: 'Khách', value: 'guest_support' },
                   { label: 'Thành viên', value: 'user_support' },
-                  { label: 'Hợp đồng', value: 'contract_chat' }
+                  { label: 'Hợp đồng', value: 'contract_chat' },
+                  { label: 'Khách', value: 'guest_support' }
                 ]}
                 value={selectedType}
                 onChange={(value) => setSelectedType(value as string)}

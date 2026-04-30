@@ -10,7 +10,7 @@ export const chatService = {
   createMessageInGroup: async (
     groupId: string,
     data: { content: string; userId: string; guestName: string; type: string }
-  ) => await axiosInstance.post(`/chat/${groupId}/messages`, { ...data }),
+  ) => await axiosInstance.post(`/chat/groups/${groupId}/messages`, { ...data }),
 
   getMemberInGroup: async (groupId: string) => await axiosInstance.get(`/chat/groups/${groupId}/members`)
 }

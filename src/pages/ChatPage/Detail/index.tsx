@@ -29,6 +29,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import type { ConversationResponse } from '@/types/chat'
 import { CHAT_PAGE, CONTRACT_PAGE, FREELANCER_PAGE } from '@/constants'
 import { useStoreSocketIO } from '@/store/useSocketStore'
+import { emitJoinConversation } from '@/services/socketConversation'
 
 const { Title, Text } = Typography
 
@@ -51,7 +52,7 @@ const ChatDetail = () => {
   const navigate = useNavigate()
   const { token } = theme.useToken()
   const { user } = useAuthStore()
-  const { socket, connect, joinConversation } = useStoreSocketIO()
+  const { socket } = useStoreSocketIO()
 
   const [conversation, setConversation] = useState<ConversationResponse | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -97,16 +98,15 @@ const ChatDetail = () => {
   }, [id])
 
   useEffect(() => {
-    if (!socket) {
-      connect()
-    }
-  }, [socket, connect])
-
-  useEffect(() => {
     if (socket && id) {
-      joinConversation(id)
+      // Join conversation room to receive real-time updates
+      emitJoinConversation(socket, id)
 
       const handleNewMessage = (msg: any) => {
+        // Skip own messages — already handled via API response in handleSendMessage
+        const msgSenderId = typeof msg.senderId === 'object' ? msg.senderId?._id : msg.senderId
+        if (msgSenderId === user?._id) return
+
         setMessages((prev) => {
           const exists = prev.some((m) => m._id === msg._id)
           if (exists) return prev
@@ -121,7 +121,7 @@ const ChatDetail = () => {
         socket.off('new_message', handleNewMessage)
       }
     }
-  }, [socket, id, joinConversation])
+  }, [socket, id])
 
   useEffect(() => {
     scrollToBottom()
@@ -214,7 +214,7 @@ const ChatDetail = () => {
         styles={{ body: { padding: '12px 24px' } }}
         style={{ marginBottom: 16, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
       >
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <Space size="middle">
             <Button
               type="text"
@@ -242,7 +242,7 @@ const ChatDetail = () => {
 
       {/* Chat Messages Area */}
       <Card
-        className="flex-1 overflow-hidden flex flex-col"
+        className="flex flex-col flex-1 overflow-hidden"
         styles={{
           body: {
             overflow: 'auto',
@@ -254,9 +254,9 @@ const ChatDetail = () => {
         }}
         style={{ borderRadius: 8 }}
       >
-        <div className="flex-1 overflow-y-auto p-6 space-y-4" style={{ background: token.colorBgLayout + '40' }}>
+        <div className="flex-1 p-6 space-y-4 overflow-y-auto" style={{ background: token.colorBgLayout + '40' }}>
           {!loading && (!Array.isArray(messages) || messages.length === 0) ? (
-            <div className="h-full flex items-center justify-center">
+            <div className="flex items-center justify-center h-full">
               <Text type="secondary">Chưa có tin nhắn nào trong cuộc hội thoại này.</Text>
             </div>
           ) : (
