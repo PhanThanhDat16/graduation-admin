@@ -14,7 +14,7 @@ export const userService = {
   editPassword: async (params: { currentPassword: string; newPassword: string }) =>
     await axiosInstance.put('/users/password', params),
 
-  createStaff: async (staffData: any) => await axiosInstance.post('/users/register', staffData),
+  createStaff: async (staffData: any) => await axiosInstance.post('/users/register/staff', staffData),
 
   updateUser: async (userId: string, userData: any) => await axiosInstance.put(`/users/${userId}`, userData),
 

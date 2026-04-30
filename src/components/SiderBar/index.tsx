@@ -55,7 +55,7 @@ const AppSidebar = ({ collapsed }: Props) => {
     {
       key: 'transaction',
       icon: <TransactionOutlined />,
-      label: 'Giao dịch'
+      label: 'Giao dịch hợp đồng'
     },
     {
       key: 'dispute',
@@ -89,7 +89,13 @@ const AppSidebar = ({ collapsed }: Props) => {
   }
 
   return (
-    <Sider trigger={null} collapsible style={{ background: token.colorBgContainer }} collapsed={collapsed}>
+    <Sider
+      trigger={null}
+      collapsible
+      style={{ background: token.colorBgContainer }}
+      collapsed={collapsed}
+      className="min-h-screen"
+    >
       <div className={`flex items-center py-4 ${collapsed ? 'justify-center px-2' : 'gap-3 px-4'}`}>
         <div
           className="flex size-10 shrink-0 items-center justify-center rounded-xl text-base font-bold text-white"
@@ -104,7 +110,7 @@ const AppSidebar = ({ collapsed }: Props) => {
         )}
       </div>
 
-      <Menu mode="inline" defaultSelectedKeys={['4']} items={items} className="h-screen" onClick={handleNavigate} />
+      <Menu mode="inline" defaultSelectedKeys={['4']} items={items} onClick={handleNavigate} />
     </Sider>
   )
 }

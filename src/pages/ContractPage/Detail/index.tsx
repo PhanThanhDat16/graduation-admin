@@ -13,15 +13,15 @@ import {
   Select,
   Row,
   Col,
-  message
+  message,
+  theme
 } from 'antd'
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons'
 import { contractService } from '@/apis/contractService'
-import { userService } from '@/apis/userService'
-import { projectService } from '@/apis/projectService'
 import type { ContractResponse } from '@/types/contract'
 
 const { Title, Text } = Typography
+const { useToken } = theme
 
 const ContractDetail = () => {
   const { id } = useParams<{ id: string }>()
@@ -30,6 +30,7 @@ const ContractDetail = () => {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [form] = Form.useForm()
+  const { token } = useToken()
 
   const fetchDetail = async () => {
     if (!id) return
@@ -37,34 +38,6 @@ const ContractDetail = () => {
       setLoading(true)
       const res = await contractService.getContractById(id)
       const contractData = res.data
-
-      // Fetch names
-      if (contractData.contractor_id?._id) {
-        try {
-          const userRes = await userService.getUserById(contractData.contractor_id._id)
-          contractData.contractorName = userRes.data?.fullName || '—'
-        } catch (error) {
-          console.error('Error fetching contractor user:', error)
-        }
-      }
-
-      if (contractData.freelancer_id?._id) {
-        try {
-          const userRes = await userService.getUserById(contractData.freelancer_id._id)
-          contractData.freelancerName = userRes.data?.fullName || '—'
-        } catch (error) {
-          console.error('Error fetching freelancer user:', error)
-        }
-      }
-
-      if (contractData.project_id) {
-        try {
-          const projectRes = await projectService.getProjectById(contractData.project_id)
-          contractData.projectName = projectRes.data?.title || '—'
-        } catch (error) {
-          console.error('Error fetching project:', error)
-        }
-      }
 
       setContract(contractData)
       form.setFieldsValue({
@@ -158,7 +131,7 @@ const ContractDetail = () => {
                 <Select
                   options={[
                     { label: 'Nháp (Draft)', value: 'draft' },
-                    { label: 'Đang chờ duyệt (Pending)', value: 'pending' },
+                    { label: 'Đang chờ duyệt (pending_agreement)', value: 'pending_agreement' },
                     { label: 'Chờ thanh toán (Waiting Payment)', value: 'waiting_payment' },
                     { label: 'Đang thi công (Running)', value: 'running' },
                     { label: 'Đã nộp (Submitted)', value: 'submitted' },
@@ -171,30 +144,30 @@ const ContractDetail = () => {
             </Col>
 
             <Col xs={24} md={8}>
-              <Card size="small" title="Thông tin đối tác" style={{ background: '#fafafa' }}>
+              <Card size="small" title="Thông tin đối tác" style={{ background: token.colorFillAlter }}>
                 <Descriptions column={1} size="small">
                   <Descriptions.Item label="Mã hợp đồng">
                     <Text copyable>{contract._id}</Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Dự án">
-                    {contract.projectName}
+                    {contract.project_id?.title || 'N/A'}
                     <br />
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      ({contract.project_id})
+                      ({contract.project_id._id})
                     </Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Chủ đầu tư">
-                    {contract.contractorName}
+                    {contract.contractor_id?.fullName || 'N/A'}
                     <br />
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      ({contract.contractor_id?._id})
+                      ({contract.contractor_id._id})
                     </Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Nhà thầu">
-                    {contract.freelancerName}
+                    {contract.freelancer_id?.fullName || 'N/A'}
                     <br />
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      ({contract.freelancer_id?._id})
+                      ({contract.freelancer_id._id})
                     </Text>
                   </Descriptions.Item>
                 </Descriptions>

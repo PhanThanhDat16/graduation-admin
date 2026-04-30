@@ -28,6 +28,7 @@ const AppHeader = ({ collapsed, onToggle }: Props) => {
   const { isDark, toggleTheme } = useContext(ThemeContext)
   const { logOut, user } = useAuthStore()
   const nav = useNavigate()
+  const { token } = useToken()
 
   const handleLogout = async () => {
     try {
@@ -55,8 +56,6 @@ const AppHeader = ({ collapsed, onToggle }: Props) => {
       label: 'Log Out'
     }
   ]
-
-  const { token } = useToken()
 
   const onAvatarMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (key === 'logout') {

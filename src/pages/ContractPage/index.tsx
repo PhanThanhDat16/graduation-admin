@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Space, Typography } from 'antd'
 import { contractService } from '@/apis/contractService'
-import { userService } from '@/apis/userService'
-import { projectService } from '@/apis/projectService'
 import type { ContractQuery, ContractResponse } from '@/types/contract'
 import type { FilterConfig } from '@/components/common/AppFilters'
 import AppFilters from '@/components/common/AppFilters'
@@ -29,7 +27,7 @@ const ContractFilters: FilterConfig[] = [
         value: 'draft'
       },
       {
-        label: 'Chờ thỏa thuận',
+        label: 'Đang chờ duyệt',
         value: 'pending_agreement'
       },
       {
@@ -104,45 +102,8 @@ const ContractPage = () => {
       const contractsData = payload.data || []
       const contractsWithDetails = await Promise.all(
         contractsData.map(async (contract: ContractResponse) => {
-          let freelancerName = '—'
-          let contractorName = '—'
-          let projectName = '—'
-
-          // Fetch contractorName
-          if (contract.contractor_id) {
-            try {
-              const userRes = await userService.getUserById(contract.contractor_id)
-              contractorName = userRes.data?.fullName || '—'
-            } catch (error) {
-              console.error('Error fetching contractor user:', error)
-            }
-          }
-
-          // Fetch freelancerName
-          if (contract.freelancer_id) {
-            try {
-              const userRes = await userService.getUserById(contract.freelancer_id)
-              freelancerName = userRes.data?.fullName || '—'
-            } catch (error) {
-              console.error('Error fetching freelancer user:', error)
-            }
-          }
-
-          // Fetch projectName
-          if (contract.project_id) {
-            try {
-              const projectRes = await projectService.getProjectById(contract.project_id)
-              projectName = projectRes.data?.title || '—'
-            } catch (error) {
-              console.error('Error fetching project:', error)
-            }
-          }
-
           return {
-            ...contract,
-            projectName,
-            freelancerName,
-            contractorName
+            ...contract
           }
         })
       )

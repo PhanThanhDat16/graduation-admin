@@ -4,10 +4,18 @@ export type ProjectStatus = 'open' | 'closed' | 'draft'
 
 export type ProjectResponse = {
   _id: string
-  contractorId: string
-  contractorName?: string
-  freelancerId?: string
-  freelancerName?: string
+  contractorId: {
+    _id: string
+    avatar: string
+    email: string
+    fullName: string
+    phone: string
+    address: string
+    status: string
+    ratingAvg: number
+    ratingCount: number
+    isVerified: boolean
+  }
   title: string
   description: string
   category: string

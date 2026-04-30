@@ -40,30 +40,14 @@ const ProfilePage = () => {
   const [saving, setSaving] = useState(false)
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
-  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false)
   const [isChangeEmailModal, setIsChangeEmailModal] = useState(false)
   const [verifyingOtp, setVerifyingOtp] = useState(false)
   const [sendingOtp, setSendingOtp] = useState(false)
   const [otpSentChange, setOtpSentChange] = useState(false)
-  const [otpForm] = Form.useForm()
   const [emailForm] = Form.useForm()
   const { user, fetchMe } = useAuthStore()
 
   const [profile, setProfile] = useState(() => ({ ...user }))
-
-  const handleRequestOtp = async (purpose: string) => {
-    setSendingOtp(true)
-    try {
-      await userService.requestOTP(profile.email as string, purpose)
-      message.success('Mã OTP đã được gửi đến email của bạn.')
-      setIsOtpModalOpen(true)
-    } catch (error) {
-      console.error('Error requesting OTP:', error)
-      message.error('Gửi mã OTP thất bại.')
-    } finally {
-      setSendingOtp(false)
-    }
-  }
 
   const handleRequestChangeOtp = async (purpose: string) => {
     try {
@@ -76,28 +60,6 @@ const ProfilePage = () => {
       message.error('Gửi mã OTP thất bại.')
     } finally {
       setSendingOtp(false)
-    }
-  }
-
-  const handleVerifyOtp = async (values: { otp: string }, purpose: string) => {
-    setVerifyingOtp(true)
-    try {
-      await userService.verifyOTP({
-        email: profile.email as string,
-        otp: values.otp,
-        purpose: purpose
-      })
-      message.success('Xác thực email thành công.')
-      setIsOtpModalOpen(false)
-      otpForm.resetFields()
-      await fetchMe()
-      // Update local profile state as well
-      setProfile((p: any) => ({ ...p, isVerified: true }))
-    } catch (error) {
-      console.error('Error verifying OTP:', error)
-      message.error('Mã OTP không chính xác hoặc đã hết hạn.')
-    } finally {
-      setVerifyingOtp(false)
     }
   }
 
@@ -121,22 +83,6 @@ const ProfilePage = () => {
       message.error('Cập nhật email thất bại.')
     } finally {
       setVerifyingOtp(false)
-    }
-  }
-
-  const handleResendOtp = async (purpose: string) => {
-    setSendingOtp(true)
-    try {
-      await userService.resentOTP({
-        email: profile.email as string,
-        purpose: purpose
-      })
-      message.success('Mã OTP đã được gửi lại.')
-    } catch (error) {
-      console.error('Error resending OTP:', error)
-      message.error('Gửi lại mã OTP thất bại.')
-    } finally {
-      setSendingOtp(false)
     }
   }
 
@@ -249,23 +195,7 @@ const ProfilePage = () => {
                 <Input maxLength={120} />
               </Form.Item>
               <Form.Item label="Email" name="email">
-                <Input
-                  readOnly
-                  maxLength={120}
-                  disabled={true}
-                  suffix={
-                    !profile.isVerified && (
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => handleRequestOtp('register')}
-                        loading={sendingOtp}
-                      >
-                        Xác thực email
-                      </Button>
-                    )
-                  }
-                />
+                <Input readOnly maxLength={120} disabled={true} />
               </Form.Item>
               <Form.Item label="Số điện thoại" name="phone" rules={[{ required: true, message: 'Nhập số điện thoại' }]}>
                 <Input maxLength={20} />
@@ -417,42 +347,6 @@ const ProfilePage = () => {
               </Button>
               <Button type="primary" htmlType="submit" loading={verifyingOtp}>
                 Xác nhận đổi email
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Xác thực email */}
-      <Modal
-        title="Xác thực Email"
-        open={isOtpModalOpen}
-        onCancel={() => setIsOtpModalOpen(false)}
-        footer={null}
-        destroyOnHidden
-      >
-        <Form
-          form={otpForm}
-          layout="vertical"
-          onFinish={() => {
-            handleVerifyOtp({ otp: otpForm.getFieldValue('otp') }, 'register')
-          }}
-        >
-          <div style={{ marginBottom: 16 }}>
-            <Text>
-              Một mã OTP đã được gửi đến email <b>{profile.email}</b>. Vui lòng nhập mã để xác thực.
-            </Text>
-          </div>
-          <Form.Item label="Mã OTP" name="otp" rules={[{ required: true, message: 'Nhập mã OTP' }]}>
-            <Input maxLength={6} placeholder="Nhập mã OTP 6 số" />
-          </Form.Item>
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-            <Space>
-              <Button onClick={() => handleResendOtp('register')} loading={sendingOtp}>
-                Gửi lại mã
-              </Button>
-              <Button type="primary" htmlType="submit" loading={verifyingOtp}>
-                Xác thực
               </Button>
             </Space>
           </Form.Item>

@@ -2,7 +2,7 @@ import type { Pagination } from '.'
 
 export type ContractStatus =
   | 'draft'
-  | 'pending'
+  | 'pending_agreement'
   | 'waiting_payment'
   | 'running'
   | 'submitted'
@@ -12,11 +12,24 @@ export type ContractStatus =
 
 export type ContractResponse = {
   _id: string
-  project_id: string
+  project_id: {
+    _id: string
+    title: string
+    description: string
+  }
   application_id: string
-  contractor_id: { _id: string }
-  freelancer_id: { _id: string }
-  description: string
+  contractor_id: {
+    _id: string
+    avatar: string
+    email: string
+    fullName: string
+  }
+  freelancer_id: {
+    _id: string
+    avatar: string
+    email: string
+    fullName: string
+  }
   contractor_terms: string
   freelancer_terms: string
   total_amount: number // Số tiền dự án (freelancer nhận khi hoàn thành)

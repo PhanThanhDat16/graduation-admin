@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Card, Col, Row, Space, Statistic, Typography, theme } from 'antd'
 import { CheckCircleOutlined, CloseCircleOutlined, FolderOpenOutlined, PlayCircleOutlined } from '@ant-design/icons'
 import { projectService } from '@/apis/projectService'
-import { userService } from '@/apis/userService'
 import type { ProjectQuery, ProjectResponse } from '@/types/project'
 import type { FilterConfig } from '@/components/common/AppFilters'
 import AppFilters from '@/components/common/AppFilters'
@@ -132,23 +131,8 @@ const ProjectPage = () => {
       const projectsData = payload.data || []
 
       const projectsWithDetails = await Promise.all(
-        projectsData.map(async (project) => {
-          let contractorName = '—'
-
-          // Fetch contractorName
-          if (project.contractorId) {
-            try {
-              const userRes = await userService.getUserById(project.contractorId)
-              contractorName = userRes.data?.fullName || '—'
-            } catch (error) {
-              console.error('Error fetching contractor user:', error)
-            }
-          }
-
-          return {
-            ...project,
-            contractorName
-          }
+        projectsData.map(async (project: ProjectResponse) => {
+          return { ...project }
         })
       )
       if (initProject.length === 0) setInitProject(projectsWithDetails)

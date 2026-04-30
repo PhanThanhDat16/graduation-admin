@@ -13,17 +13,18 @@ import {
   InputNumber,
   Row,
   Col,
-  message
+  message,
+  theme
 } from 'antd'
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { projectService } from '@/apis/projectService'
-import { userService } from '@/apis/userService'
 import type { ProjectResponse } from '@/types/project'
 
 const { Title, Text } = Typography
 
 const ProjectDetail = () => {
+  const { token } = theme.useToken()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [project, setProject] = useState<ProjectResponse | null>(null)
@@ -38,16 +39,6 @@ const ProjectDetail = () => {
       const res = await projectService.getProjectById(id)
       const projectData = res.data
 
-      // Fetch contractorName if not present
-      if (projectData.contractorId) {
-        try {
-          const userRes = await userService.getUserById(projectData.contractorId)
-          projectData.contractorName = userRes.data?.fullName || '—'
-        } catch (error) {
-          console.error('Error fetching contractor user:', error)
-        }
-      }
-
       setProject(projectData)
       form.setFieldsValue({
         title: projectData.title,
@@ -56,7 +47,8 @@ const ProjectDetail = () => {
         budgetMin: projectData.budgetMin,
         budgetMax: projectData.budgetMax,
         status: projectData.status,
-        skills: projectData.skills
+        skills: projectData.skills,
+        contractorId: projectData.contractorId._id
       })
     } catch (error) {
       console.error('Failed to fetch project detail:', error)
@@ -148,16 +140,16 @@ const ProjectDetail = () => {
             </Col>
 
             <Col xs={24} md={8}>
-              <Card size="small" title="Thông tin bổ sung" style={{ background: '#fafafa' }}>
+              <Card size="small" title="Thông tin bổ sung" style={{ background: token.colorFillAlter }}>
                 <Descriptions column={1} size="small">
                   <Descriptions.Item label="Mã dự án">
                     <Text copyable>{project._id}</Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Chủ dự án">
-                    {project.contractorName}
+                    {project.contractorId.fullName}
                     <br />
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      ({project.contractorId})
+                      ({project.contractorId._id})
                     </Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Lượt thích">{project.likes}</Descriptions.Item>

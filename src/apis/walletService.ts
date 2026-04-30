@@ -1,7 +1,9 @@
 import axiosInstance from '@/utils/axiosInstance'
 
 export const walletService = {
-  getAllWallets: async () => await axiosInstance.get('/wallets/admin/withdraw-requests'),
+  getAllWithdrawRequests: async () => await axiosInstance.get('/wallets/staff/withdraw-requests'),
+
+  getAllUserWallets: async () => await axiosInstance.get('/wallets/admin/wallets'),
 
   getUserWallet: async (userId: string) => await axiosInstance.get(`/wallets/admin/${userId}`),
 
