@@ -6,7 +6,7 @@ import type { UserQuery, UserResponse } from '@/types/user'
 import type { FilterConfig } from '@/components/common/AppFilters'
 import TableContractors from './Table'
 import AppFilters from '@/components/common/AppFilters'
-import { CONTRACTOR_PAGE } from '@/constants'
+import { USERDETAIL_PAGE } from '@/constants'
 
 const { Title, Text } = Typography
 
@@ -119,7 +119,7 @@ const ContractorPage = () => {
   }
 
   const handleViewDetail = (record: UserResponse) => {
-    navigate(`${CONTRACTOR_PAGE}/${record._id}`)
+    navigate(`${USERDETAIL_PAGE}/${record._id}`)
   }
 
   const fetchContractors = async () => {

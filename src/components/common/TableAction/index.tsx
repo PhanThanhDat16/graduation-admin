@@ -69,7 +69,6 @@ const TableAction = ({ showEdit, showDelete, showView, onEdit, onDelete, onView 
                 color: 'red',
                 cursor: 'pointer'
               }}
-              onClick={onDelete}
             />
           </Popconfirm>
         )}

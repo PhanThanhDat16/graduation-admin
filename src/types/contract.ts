@@ -2,6 +2,7 @@ import type { Pagination } from '.'
 
 export type ContractStatus =
   | 'draft'
+  | 'closed_for_requests'
   | 'pending_agreement'
   | 'waiting_payment'
   | 'running'
@@ -12,44 +13,30 @@ export type ContractStatus =
 
 export type ContractResponse = {
   _id: string
-  project_id: {
-    _id: string
-    title: string
-    description: string
-  }
-  application_id: string
-  contractor_id: {
-    _id: string
-    avatar: string
-    email: string
-    fullName: string
-  }
-  freelancer_id: {
-    _id: string
-    avatar: string
-    email: string
-    fullName: string
-  }
-  contractor_terms: string
-  freelancer_terms: string
-  total_amount: number // Số tiền dự án (freelancer nhận khi hoàn thành)
-  admin_fee: number // Phí platform
-  freelancer_deposit: number // Tiền đặt cọc freelancer (hoàn lại khi hoàn thành)
-  contractor_agreed: boolean
-  freelancer_agreed: boolean
+  projectId: { _id: string; title: string; description: string }
+  applicationId: string
+  contractorId: { _id: string; avatar: string; email: string; fullName: string }
+  freelancerId: { _id: string; avatar: string; email: string; fullName: string }
+  contractorTerms: string
+  freelancerTerms: string
+  totalAmount: number // Số tiền dự án (freelancer nhận khi hoàn thành)
+  adminFee: number // Phí platform
+  freelancerDeposit: number // Tiền đặt cọc freelancer (hoàn lại khi hoàn thành)
+  contractorAgreed: boolean
+  freelancerAgreed: boolean
   deadline: string
-  contractor_paid: boolean
-  freelancer_paid: boolean
-  contractor_paid_amount: number
-  freelancer_paid_amount: number
+  contractorPaid: boolean
+  freelancerPaid: boolean
+  contractorPaidAmount: number
+  freelancerPaidAmount: number
   status: ContractStatus
-  escrow_status: ['pending', 'partial', 'funded', 'locked', 'released', 'refunded', 'split']
-  total_escrow_amount: number
-  released_to_freelancer: number
-  refunded_to_contractor: number
-  refunded_to_freelancer: number
-  admin_fee_collected: number
-  payment_info: PaymentInfo
+  escrowStatus: ['pending', 'partial', 'funded', 'locked', 'released', 'refunded', 'split']
+  totalEscrowAmount: number
+  releasedToFreelancer: number
+  refundedToContractor: number
+  refundedToFreelancer: number
+  adminFeeCollected: number
+  paymentInfo: PaymentInfo
   createdAt?: string
   updatedAt?: string
   // Extra fields for display

@@ -1,12 +1,15 @@
+import type { TransactionQuery } from '@/types/transaction'
+import type { WalletQuery } from '@/types/wallet'
 import axiosInstance from '@/utils/axiosInstance'
 
 export const walletService = {
-  getAllWithdrawRequests: async () => await axiosInstance.get('/wallets/staff/withdraw-requests'),
+  getAllUserWallets: async (query: WalletQuery) => await axiosInstance.get('/wallets/admin', { params: query }),
 
-  getAllUserWallets: async () => await axiosInstance.get('/wallets/admin/wallets'),
+  getUserWallet: async (userId: string) => await axiosInstance.get(`/wallets/admin/users/${userId}`),
 
-  getUserWallet: async (userId: string) => await axiosInstance.get(`/wallets/admin/${userId}`),
+  getUserWalletTransactions: async (userId: string, query: TransactionQuery) =>
+    await axiosInstance.get(`/wallets/admin/users/${userId}/transactions`, { params: query }),
 
-  postUserWallet: async (userId: string, amount: number) =>
-    await axiosInstance.post(`/wallets/admin/${userId}/deposit`, { amount })
+  getAllWithdrawRequests: async (query: WalletQuery) =>
+    await axiosInstance.get('/wallets/staff/withdraw-requests', { params: query })
 }

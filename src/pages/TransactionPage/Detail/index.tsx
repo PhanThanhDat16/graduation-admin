@@ -1,130 +1,160 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Tag, Typography, Button, Space, Form, Input, Select, Row, Col, message } from 'antd'
-import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
+import { Card, Tag, Typography, Button, Space, Descriptions, Spin, Form } from 'antd'
 import {
-  MOCK_PROJECT_TRANSACTIONS,
-  PROJECT_TX_STATUS_LABEL,
-  PROJECT_TX_TYPE_LABEL,
-  type ProjectTxStatus,
-  type ProjectTxType
-} from '@/mock/projectTransactions.mock'
+  ArrowLeftOutlined,
+  WalletOutlined,
+  UserOutlined,
+  ClockCircleOutlined,
+  InfoCircleOutlined
+} from '@ant-design/icons'
+import dayjs from 'dayjs'
 import { formatVnd } from '@/utils/formatCurrency'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { TransactionResponse, TransactionStatus, TransactionType } from '@/types/transaction'
+import { TransactionService } from '@/apis/transactionService'
 
 const { Title, Text } = Typography
 
-const TYPE_COLOR: Record<ProjectTxType, string> = {
-  escrow_hold: 'blue',
-  milestone_release: 'green',
-  platform_fee: 'purple',
-  refund_partial: 'orange',
-  dispute_escrow: 'red'
+const statusMap: Record<TransactionStatus, { color: string; label: string }> = {
+  pending: { color: 'processing', label: 'Đang xử lý' },
+  completed: { color: 'success', label: 'Thành công' },
+  failed: { color: 'error', label: 'Thất bại' },
+  cancelled: { color: 'default', label: 'Đã hủy' }
+}
+
+const typeMap: Record<TransactionType, { color: string; label: string }> = {
+  deposit: { color: 'green', label: 'Nạp tiền' },
+  withdraw: { color: 'volcano', label: 'Rút tiền' },
+  escrow_deposit: { color: 'blue', label: 'Ký quỹ' },
+  escrow_release: { color: 'cyan', label: 'Giải ngân' },
+  refund: { color: 'purple', label: 'Hoàn tiền' },
+  admin_fee: { color: 'gold', label: 'Phí hệ thống' }
 }
 
 const TransactionDetail = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [detail, setDetail] = useState(() => MOCK_PROJECT_TRANSACTIONS.find((t) => t.id === id))
+  const [transaction, setTransaction] = useState<TransactionResponse | null>(null)
+  const [loading, setLoading] = useState(true)
   const [form] = Form.useForm()
-  const [saving, setSaving] = useState(false)
 
-  if (!detail) {
+  const fetchTransaction = async () => {
+    if (!id) return
+    try {
+      setLoading(true)
+      const res = await TransactionService.getTransactionById(id)
+      const data = res.data
+      setTransaction(data)
+      form.setFieldsValue({
+        ...data
+      })
+    } catch (error) {
+      console.error('Failed to fetch transaction:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTransaction()
+  }, [id])
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" description="Đang tải thông tin giao dịch..." />
+      </div>
+    )
+  }
+
+  if (!transaction) {
     return (
       <Space orientation="vertical" size="large" style={{ width: '100%' }}>
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
           Quay lại
         </Button>
-        <div>Không tìm thấy giao dịch</div>
+        <Card>
+          <div style={{ textAlign: 'center', padding: '20px' }}>
+            <InfoCircleOutlined style={{ fontSize: '48px', color: '#faad14', marginBottom: '16px' }} />
+            <Title level={4}>Không tìm thấy thông tin giao dịch</Title>
+            <Text type="secondary">Giao dịch này có thể không tồn tại hoặc bạn không có quyền truy cập.</Text>
+          </div>
+        </Card>
       </Space>
     )
   }
 
-  const handleSave = async (values: any) => {
-    setSaving(true)
-    setTimeout(() => {
-      setDetail((prev) => (prev ? { ...prev, ...values } : prev))
-      setSaving(false)
-      message.success('Cập nhật giao dịch thành công (Mock)')
-    }, 500)
-  }
+  const typeInfo = transaction.type ? typeMap[transaction.type] : { color: 'default', label: 'Không xác định' }
+  const statusInfo = transaction.status ? statusMap[transaction.status] : { color: 'default', label: 'Không xác định' }
+  const isPositive = ['deposit', 'escrow_release', 'refund'].includes(transaction.type || '')
 
   return (
-    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }}>
       <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
         Quay lại
       </Button>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={3} style={{ margin: 0 }}>
-          Giao dịch: {detail.code}
+          Chi tiết giao dịch
         </Title>
-        <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => form.submit()}>
-          Lưu thay đổi
-        </Button>
       </div>
 
-      <Card>
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{
-            note: detail.note,
-            status: detail.status
-          }}
-          onFinish={handleSave}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Mã giao dịch">
-                <Text strong>{detail.code}</Text>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Trạng thái" name="status">
-                <Select
-                  options={(Object.keys(PROJECT_TX_STATUS_LABEL) as ProjectTxStatus[]).map((k) => ({
-                    label: PROJECT_TX_STATUS_LABEL[k],
-                    value: k
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+      <Card
+        title={
+          <Space>
+            <WalletOutlined />
+            <span>Mã giao dịch: {transaction._id}</span>
+          </Space>
+        }
+        extra={<Tag color={statusInfo.color}>{statusInfo.label}</Tag>}
+      >
+        <Descriptions column={2} bordered>
+          <Descriptions.Item label="Mã ví" span={2}>
+            <Text copyable>{transaction.walletId}</Text>
+          </Descriptions.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Mã dự án">
-                <Text>{detail.projectCode}</Text>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Hợp đồng">
-                <Text>{detail.contractCode ?? '—'}</Text>
-              </Form.Item>
-            </Col>
-          </Row>
+          <Descriptions.Item label="Người thực hiện" span={2}>
+            <Space>
+              <UserOutlined />
+              <Text copyable>{transaction.userId.fullName}</Text>
+            </Space>
+          </Descriptions.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Loại">
-                <Tag color={TYPE_COLOR[detail.type]}>{PROJECT_TX_TYPE_LABEL[detail.type]}</Tag>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Số tiền">
-                <Text strong>{formatVnd(detail.amountVnd)}</Text>
-              </Form.Item>
-            </Col>
-          </Row>
+          <Descriptions.Item label="Loại giao dịch">
+            <Tag color={typeInfo.color}>{typeInfo.label}</Tag>
+          </Descriptions.Item>
 
-          <Form.Item label="Mô tả / ghi chú" name="note">
-            <Input.TextArea rows={3} />
-          </Form.Item>
+          <Descriptions.Item label="Số tiền">
+            <Text strong style={{ fontSize: '18px', color: isPositive ? '#52c41a' : '#f5222d' }}>
+              {isPositive ? '+' : '-'}
+              {formatVnd(transaction.amount)}
+            </Text>
+          </Descriptions.Item>
 
-          <Form.Item label="Thời gian">
-            <Text type="secondary">{dayjs(detail.createdAt).format('DD/MM/YYYY HH:mm:ss')}</Text>
-          </Form.Item>
-        </Form>
+          <Descriptions.Item label="Phương thức thanh toán">
+            <Tag>{transaction.methodPayment?.toUpperCase() || 'VÍ HỆ THỐNG'}</Tag>
+          </Descriptions.Item>
+
+          <Descriptions.Item label="Mã đơn hàng/thanh toán">
+            <Text copyable>{transaction.paymentOrderId || '—'}</Text>
+          </Descriptions.Item>
+
+          <Descriptions.Item label="Thời gian tạo" span={1}>
+            <Space>
+              <ClockCircleOutlined />
+              {dayjs(transaction.createdAt).format('DD/MM/YYYY HH:mm:ss')}
+            </Space>
+          </Descriptions.Item>
+
+          <Descriptions.Item label="Trạng thái" span={1}>
+            <Tag color={statusInfo.color}>{statusInfo.label}</Tag>
+          </Descriptions.Item>
+
+          <Descriptions.Item label="Mô tả" span={2}>
+            {transaction.description || 'Không có mô tả'}
+          </Descriptions.Item>
+        </Descriptions>
       </Card>
     </Space>
   )

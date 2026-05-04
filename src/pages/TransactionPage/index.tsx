@@ -1,113 +1,119 @@
-import { useMemo, useState } from 'react'
-import { Alert, Button, Card, Input, Select, Space, Table, Tag, Typography } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
-import { EyeOutlined } from '@ant-design/icons'
-import { Link, useNavigate } from 'react-router-dom'
-import dayjs from 'dayjs'
-import {
-  MOCK_PROJECT_TRANSACTIONS,
-  PROJECT_TX_STATUS_LABEL,
-  PROJECT_TX_TYPE_LABEL,
-  type MockProjectTransaction,
-  type ProjectTxStatus,
-  type ProjectTxType
-} from '@/mock/projectTransactions.mock'
-import { WALLET_PAGE, TRANSACTION_PAGE } from '@/constants'
-import { formatVnd } from '@/utils/formatCurrency'
+import { useEffect, useState } from 'react'
+import { Card, Space, Typography } from 'antd'
+import { useNavigate } from 'react-router-dom'
+import { TRANSACTION_PAGE } from '@/constants'
+import type { FilterConfig } from '@/components/common/AppFilters'
+import type { TransactionQuery, TransactionResponse } from '@/types/transaction'
+import AppFilters from '@/components/common/AppFilters'
+import TableTransaction from './Table'
+import { TransactionService } from '@/apis/transactionService'
 
 const { Title, Text } = Typography
 
-const TYPE_COLOR: Record<ProjectTxType, string> = {
-  escrow_hold: 'blue',
-  milestone_release: 'green',
-  platform_fee: 'purple',
-  refund_partial: 'orange',
-  dispute_escrow: 'red'
-}
-
-const TX_STATUS_COLOR: Record<ProjectTxStatus, string> = {
-  completed: 'success',
-  pending: 'processing',
-  failed: 'error'
-}
+const TransactionFilters: FilterConfig[] = [
+  {
+    type: 'select',
+    name: 'type',
+    placeholder: 'Loại giao dịch',
+    options: [
+      { label: 'Nạp tiền', value: 'deposit' },
+      { label: 'Rút tiền', value: 'withdraw' }
+    ],
+    label: 'Loại giao dịch'
+  },
+  {
+    type: 'select',
+    name: 'methodPayment',
+    placeholder: 'Cổng thanh toán',
+    options: [
+      { label: 'MoMo', value: 'momo' },
+      { label: 'VNPay', value: 'vnpay' }
+    ],
+    label: 'Cổng thanh toán'
+  },
+  {
+    type: 'select',
+    name: 'status',
+    placeholder: 'Trạng thái',
+    options: [
+      { label: 'Thành công', value: 'success' },
+      { label: 'Đang xử lý', value: 'pending' },
+      { label: 'Đã từ chối', value: 'rejected' }
+    ],
+    label: 'Trạng thái'
+  }
+]
 
 const TransactionPage = () => {
   const navigate = useNavigate()
-  const [search, setSearch] = useState('')
-  const [type, setType] = useState<ProjectTxType | 'all'>('all')
+  const [isLoading, setIsLoading] = useState(false)
+  const [query, setQuery] = useState<TransactionQuery>({
+    page: 1,
+    limit: 10,
+    status: '',
+    type: '',
+    methodPayment: ''
+  })
+  const [transactions, setTransactions] = useState<TransactionResponse[]>([])
 
-  const filtered = useMemo(() => {
-    return MOCK_PROJECT_TRANSACTIONS.filter((t) => {
-      const q = search.toLowerCase()
-      const matchText =
-        !search.trim() ||
-        t.code.toLowerCase().includes(q) ||
-        t.projectCode.toLowerCase().includes(q) ||
-        (t.contractCode?.toLowerCase().includes(q) ?? false) ||
-        t.note.toLowerCase().includes(q)
-      const matchType = type === 'all' || t.type === type
-      return matchText && matchType
-    })
-  }, [search, type])
-
-  const handleViewDetail = (record: MockProjectTransaction) => {
-    navigate(`${TRANSACTION_PAGE}/${record.id}`)
+  const handleGetValueFilter = (values: Record<string, any>) => {
+    setQuery((prev) => ({
+      ...prev,
+      page: 1,
+      status: values.status || '',
+      type: values.type || '',
+      methodPayment: values.methodPayment || ''
+    }))
   }
 
-  const columns: ColumnsType<MockProjectTransaction> = useMemo(
-    () => [
-      { title: 'Mã GD', dataIndex: 'code', key: 'code', width: 170 },
-      { title: 'Dự án', dataIndex: 'projectCode', key: 'pj', width: 130 },
-      {
-        title: 'Hợp đồng',
-        dataIndex: 'contractCode',
-        key: 'hd',
-        width: 130,
-        render: (c: string | null) => c ?? <Text type="secondary">—</Text>
-      },
-      {
-        title: 'Loại',
-        dataIndex: 'type',
-        key: 'type',
-        width: 200,
-        render: (ty: ProjectTxType) => <Tag color={TYPE_COLOR[ty]}>{PROJECT_TX_TYPE_LABEL[ty]}</Tag>
-      },
-      {
-        title: 'Số tiền',
-        dataIndex: 'amountVnd',
-        key: 'amt',
-        width: 150,
-        render: (n: number) => formatVnd(n)
-      },
-      {
-        title: 'Trạng thái',
-        dataIndex: 'status',
-        key: 'st',
-        width: 120,
-        render: (s: ProjectTxStatus) => <Tag color={TX_STATUS_COLOR[s]}>{PROJECT_TX_STATUS_LABEL[s]}</Tag>
-      },
-      { title: 'Mô tả', dataIndex: 'note', key: 'note', ellipsis: true },
-      {
-        title: 'Thời gian',
-        dataIndex: 'createdAt',
-        key: 'at',
-        width: 150,
-        render: (iso: string) => dayjs(iso).format('DD/MM/YYYY HH:mm')
-      },
-      {
-        title: 'Thao tác',
-        key: 'ac',
-        fixed: 'right',
-        width: 110,
-        render: (_: unknown, record: MockProjectTransaction) => (
-          <Button type="link" size="small" icon={<EyeOutlined />} onClick={() => handleViewDetail(record)}>
-            Chi tiết
-          </Button>
-        )
+  const handleChangePageSizeTable = (newPage: number, newSize: number) => {
+    setQuery((prev) => ({
+      ...prev,
+      page: newPage,
+      limit: newSize
+    }))
+  }
+
+  const handleViewDetail = (record: TransactionResponse) => {
+    navigate(`${TRANSACTION_PAGE}/${record._id}`)
+  }
+
+  const fetchTransactions = async () => {
+    try {
+      setIsLoading(true)
+      const res = await TransactionService.getAllTransactions(query)
+      const payload = res.data || {
+        data: [],
+        pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
       }
-    ],
-    [handleViewDetail]
-  )
+      const transactionsData = payload.data || []
+      const transactionsWithDetails = await Promise.all(
+        transactionsData.map(async (transaction: TransactionResponse) => {
+          return {
+            ...transaction
+          }
+        })
+      )
+
+      setTransactions(transactionsWithDetails)
+      if (payload.pagination) {
+        setQuery((prev) => ({
+          ...prev,
+          page: payload.pagination.page,
+          limit: payload.pagination.limit,
+          pagination: payload.pagination
+        }))
+      }
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error)
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    Promise.resolve().then(() => fetchTransactions())
+  }, [query.page, query.limit, query.status, query.type, query.methodPayment])
 
   return (
     <Space vertical size="large" style={{ width: '100%' }}>
@@ -118,47 +124,20 @@ const TransactionPage = () => {
         <Text type="secondary">Luồng tiền gắn với hợp đồng: giữ tạm, giải ngân cột mốc, phí nền tảng, hoàn tiền…</Text>
       </div>
 
-      <Alert
-        type="info"
-        showIcon
-        title="Phạm vi hiển thị"
-        description={
-          <span>
-            Trang này chỉ liệt kê giao dịch liên quan đến <strong>dự án / hợp đồng</strong>. Giao dịch{' '}
-            <strong>nạp / rút ví cá nhân</strong> của freelance và khách hàng không hiển thị ở đây (bảo mật cá nhân).
-            Cấp quản trị tra cứu tại trang <Link to={WALLET_PAGE}>Ví &amp; nạp rút</Link>.
-          </span>
-        }
-      />
-
       <Card>
         <Space wrap style={{ marginBottom: 16 }}>
-          <Input.Search
-            allowClear
-            placeholder="Mã GD, mã dự án, hợp đồng, mô tả…"
-            onSearch={setSearch}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ width: 340 }}
-          />
-          <Select
-            value={type}
-            onChange={setType}
-            style={{ width: 240 }}
-            options={[
-              { label: 'Mọi loại', value: 'all' },
-              ...(Object.keys(PROJECT_TX_TYPE_LABEL) as ProjectTxType[]).map((k) => ({
-                label: PROJECT_TX_TYPE_LABEL[k],
-                value: k
-              }))
-            ]}
-          />
+          <AppFilters filters={TransactionFilters} onChange={handleGetValueFilter} />
         </Space>
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={filtered}
-          pagination={{ pageSize: 8, showSizeChanger: true }}
-          scroll={{ x: 1320 }}
+
+        <TableTransaction
+          loading={isLoading}
+          page={query.page}
+          pageSize={query.limit}
+          total={query?.pagination?.total || 0}
+          transactions={transactions}
+          onPageChange={handleChangePageSizeTable}
+          onDelete={() => {}}
+          onView={handleViewDetail}
         />
       </Card>
     </Space>

@@ -4,7 +4,7 @@ export type UserResponse = {
   _id: string
   email: string
   fullName: string
-  avatarUrl?: string
+  avatar?: string | null
   phone?: string
   birthday?: Date
   role: 'admin' | 'staff' | 'freelancer' | 'contractor'

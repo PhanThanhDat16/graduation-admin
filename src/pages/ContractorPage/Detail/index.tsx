@@ -99,7 +99,7 @@ const ContractorDetail = () => {
       </Button>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={3} style={{ margin: 0 }}>
-          Contractor: {contractor.fullName}
+          {contractor.role.toUpperCase()}: {contractor.fullName}
         </Title>
         <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => form.submit()}>
           Lưu thay đổi
@@ -112,9 +112,9 @@ const ContractorDetail = () => {
             <Col xs={24} md={8} style={{ textAlign: 'center' }}>
               <Space vertical size="middle" style={{ width: '100%' }}>
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                  {contractor.avatarUrl ? (
+                  {contractor.avatar ? (
                     <img
-                      src={contractor.avatarUrl}
+                      src={contractor.avatar}
                       alt={contractor.fullName}
                       style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover' }}
                     />

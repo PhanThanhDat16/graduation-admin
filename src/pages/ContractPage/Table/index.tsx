@@ -17,7 +17,8 @@ type Props = {
 const LABEL_STATUS: Record<ContractStatus, string> = {
   draft: 'Nháp',
   pending_agreement: 'Đang chờ duyệt',
-  waiting_payment: 'Chờ thanh toán',
+  closed_for_requests: 'Ngừng nhận yêu cầu',
+  waiting_payment: 'Chờ đặt cọc',
   running: 'Đang thi công',
   submitted: 'Đã nộp',
   completed: 'Đã hoàn thành',
@@ -28,6 +29,7 @@ const LABEL_STATUS: Record<ContractStatus, string> = {
 const COLOR_STATUS: Record<ContractStatus, string> = {
   draft: 'default',
   pending_agreement: 'yellow',
+  closed_for_requests: 'volcano',
   waiting_payment: 'orange',
   running: 'success',
   submitted: 'cyan',
@@ -45,26 +47,26 @@ const TableContracts = ({ contracts, page, pageSize, loading, onPageChange, tota
     },
     {
       title: 'Dự án',
-      dataIndex: 'project_id',
-      key: 'project_id',
-      render: (project_id: any) => project_id?.title || 'N/A'
+      dataIndex: 'projectId',
+      key: 'projectId',
+      render: (projectId: any) => projectId?.title || 'N/A'
     },
     {
       title: 'Chủ đầu tư',
-      dataIndex: 'contractor_id',
-      key: 'contractor_id',
-      render: (contractor_id: any) => contractor_id?.fullName || 'N/A'
+      dataIndex: 'contractorId',
+      key: 'contractorId',
+      render: (contractorId: any) => contractorId?.fullName || 'N/A'
     },
     {
       title: 'Nhà thầu',
-      dataIndex: 'freelancer_id',
-      key: 'freelancer_id',
-      render: (freelancer_id: any) => freelancer_id?.fullName || 'N/A'
+      dataIndex: 'freelancerId',
+      key: 'freelancerId',
+      render: (freelancerId: any) => freelancerId?.fullName || 'N/A'
     },
     {
       title: 'Tổng giá trị (VND)',
-      dataIndex: 'total_amount',
-      key: 'total_amount',
+      dataIndex: 'totalAmount',
+      key: 'totalAmount',
       width: 200,
       align: 'end',
       render: (number: number) => {
@@ -73,8 +75,8 @@ const TableContracts = ({ contracts, page, pageSize, loading, onPageChange, tota
     },
     {
       title: 'Phí nền tảng (VND)',
-      dataIndex: 'admin_fee',
-      key: 'admin_fee',
+      dataIndex: 'adminFee',
+      key: 'adminFee',
       width: 200,
       align: 'end',
       render: (number: number) => {
@@ -117,6 +119,7 @@ const TableContracts = ({ contracts, page, pageSize, loading, onPageChange, tota
         pageSize,
         total,
         showSizeChanger: true,
+        hideOnSinglePage: true,
         onChange: onPageChange
       }}
       scroll={{ x: 1220 }}

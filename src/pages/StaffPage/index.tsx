@@ -51,22 +51,6 @@ const StaffFilters: FilterConfig[] = [
   },
   {
     type: 'select',
-    name: 'isVerified',
-    placeholder: 'Trạng thái',
-    options: [
-      {
-        label: 'Đã xác minh',
-        value: 'true'
-      },
-      {
-        label: 'Chưa xác minh',
-        value: 'false'
-      }
-    ],
-    label: 'Xác thực'
-  },
-  {
-    type: 'select',
     name: 'sortBy',
     placeholder: 'Sắp xếp tên, ngày tạo...',
     options: [
@@ -138,8 +122,7 @@ const StaffPage = () => {
       keyword: values.keyword || '',
       status: values.status || '',
       sortBy: values.sortBy || '',
-      sortOrder: values.sortOrder || '',
-      isVerified: values.isVerified || undefined
+      sortOrder: values.sortOrder || ''
     }))
   }
 
@@ -151,8 +134,22 @@ const StaffPage = () => {
     }))
   }
 
-  const handleViewDetail = (record: UserResponse) => {
-    navigate(`${STAFF_PAGE}/${record._id}`)
+  const handleViewDetail = (id: string) => {
+    navigate(`${STAFF_PAGE}/${id}`)
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      setIsLoading(true)
+      await userService.deleteUser(id)
+      message.success('Xóa nhân viên thành công')
+      fetchStaff()
+    } catch (error: any) {
+      console.error('Delete failed:', error)
+      message.error(error?.response?.data?.message || 'Xóa thất bại')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const openCreate = () => {
@@ -222,7 +219,7 @@ const StaffPage = () => {
 
   useEffect(() => {
     Promise.resolve().then(() => fetchStaff())
-  }, [query.page, query.limit, query.keyword, query.status, query.sortBy, query.sortOrder, query.isVerified])
+  }, [query.page, query.limit, query.keyword, query.status, query.sortBy, query.sortOrder])
 
   return (
     <Space orientation="vertical" size="large" style={{ width: '100%' }}>
@@ -250,7 +247,7 @@ const StaffPage = () => {
           total={query?.pagination?.total || 0}
           staffList={staffList}
           onPageChange={handleChangePageSizeTable}
-          onDelete={() => {}}
+          onDelete={handleDelete}
           onView={handleViewDetail}
         />
       </Card>

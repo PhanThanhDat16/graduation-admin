@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, Badge, Card, Input, List, Space, Typography, theme, Skeleton, Segmented } from 'antd'
 import { UserOutlined, FileTextOutlined, CustomerServiceOutlined, MessageOutlined } from '@ant-design/icons'
@@ -8,12 +8,14 @@ import { chatService } from '@/apis/chatService'
 import type { ConversationResponse } from '@/types/chat'
 import { useStoreSocketIO } from '@/store/useSocketStore'
 import { emitJoinConversation, listenNewConversation } from '@/services/socketConversation'
+import { ThemeContext } from '@/contexts/ThemeContext'
 
 const { Title, Text } = Typography
 
 const ChatPage = () => {
   const navigate = useNavigate()
   const { token } = theme.useToken()
+  const { isDark } = useContext(ThemeContext)
   const [search, setSearch] = useState('')
   const [selectedType, setSelectedType] = useState<string>('user_support')
   const [groups, setGroups] = useState<ConversationResponse[]>([])
@@ -67,7 +69,7 @@ const ChatPage = () => {
         }
       case 'user_support':
         return {
-          title: item.ownerInfo?.full_name || 'Người dùng',
+          title: item.ownerId?.fullName || 'Người dùng',
           subtitle: 'Hỗ trợ thành viên',
           icon: <UserOutlined />,
           color: token.colorPrimary
@@ -103,7 +105,7 @@ const ChatPage = () => {
     return (
       <List.Item
         onClick={() => handleViewDetail(item)}
-        className="p-4 mx-2 transition-colors rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
+        className={`p-4 mx-2 transition-colors rounded-lg cursor-pointer ${isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-200'}`}
         style={{ borderBlockEnd: 'none' }}
       >
         <List.Item.Meta
@@ -146,7 +148,7 @@ const ChatPage = () => {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <Space direction="vertical" size="large" className="w-full">
+      <Space vertical size="large" className="w-full">
         <div>
           <Title level={3} style={{ margin: 0 }}>
             Hội thoại trực tuyến

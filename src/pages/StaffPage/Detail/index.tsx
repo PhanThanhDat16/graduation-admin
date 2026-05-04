@@ -111,9 +111,9 @@ const StaffDetail = () => {
             <Col xs={24} md={8} style={{ textAlign: 'center' }}>
               <Space vertical size="middle" style={{ width: '100%' }}>
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                  {staff.avatarUrl ? (
+                  {staff.avatar ? (
                     <img
-                      src={staff.avatarUrl}
+                      src={staff.avatar}
                       alt={staff.fullName}
                       style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover' }}
                     />
