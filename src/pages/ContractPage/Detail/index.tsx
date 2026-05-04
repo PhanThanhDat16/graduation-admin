@@ -38,11 +38,10 @@ const ContractDetail = () => {
       setLoading(true)
       const res = await contractService.getContractById(id)
       const contractData = res.data
-
       setContract(contractData)
       form.setFieldsValue({
-        total_amount: contractData.total_amount,
-        admin_fee: contractData.admin_fee,
+        totalAmount: contractData.totalAmount,
+        adminFee: contractData.adminFee,
         status: contractData.status,
         description: contractData.description
       })
@@ -108,7 +107,7 @@ const ContractDetail = () => {
 
               <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item label="Tổng giá trị" name="total_amount">
+                  <Form.Item label="Tổng giá trị" name="totalAmount">
                     <InputNumber
                       style={{ width: '100%' }}
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
@@ -117,7 +116,7 @@ const ContractDetail = () => {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item label="Phí nền tảng" name="admin_fee">
+                  <Form.Item label="Phí nền tảng" name="adminFee">
                     <InputNumber
                       style={{ width: '100%' }}
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
@@ -131,8 +130,9 @@ const ContractDetail = () => {
                 <Select
                   options={[
                     { label: 'Nháp (Draft)', value: 'draft' },
+                    { label: 'Ngừng nhận yêu cầu (Closed for Requests)', value: 'closed_for_requests' },
                     { label: 'Đang chờ duyệt (pending_agreement)', value: 'pending_agreement' },
-                    { label: 'Chờ thanh toán (Waiting Payment)', value: 'waiting_payment' },
+                    { label: 'Chờ đặt cọc (Waiting Payment)', value: 'waiting_payment' },
                     { label: 'Đang thi công (Running)', value: 'running' },
                     { label: 'Đã nộp (Submitted)', value: 'submitted' },
                     { label: 'Đã hoàn thành (Completed)', value: 'completed' },
@@ -150,24 +150,24 @@ const ContractDetail = () => {
                     <Text copyable>{contract._id}</Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Dự án">
-                    {contract.project_id?.title || 'N/A'}
+                    {contract.projectId?.title || 'N/A'}
                     <br />
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      ({contract.project_id._id})
+                      ({contract.projectId._id})
                     </Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Chủ đầu tư">
-                    {contract.contractor_id?.fullName || 'N/A'}
+                    {contract.contractorId?.fullName || 'N/A'}
                     <br />
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      ({contract.contractor_id._id})
+                      ({contract.contractorId._id})
                     </Text>
                   </Descriptions.Item>
                   <Descriptions.Item label="Nhà thầu">
-                    {contract.freelancer_id?.fullName || 'N/A'}
+                    {contract.freelancerId?.fullName || 'N/A'}
                     <br />
                     <Text type="secondary" style={{ fontSize: 12 }}>
-                      ({contract.freelancer_id._id})
+                      ({contract.freelancerId._id})
                     </Text>
                   </Descriptions.Item>
                 </Descriptions>

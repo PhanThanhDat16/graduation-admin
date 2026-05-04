@@ -59,8 +59,8 @@ const TableDisputes = ({ disputes, page, pageSize, loading, onPageChange, total,
     },
     {
       title: 'Phí nền tảng',
-      dataIndex: 'admin_fee',
-      key: 'admin_fee',
+      dataIndex: 'adminFee',
+      key: 'adminFee',
       width: 200
     },
     {
@@ -97,6 +97,7 @@ const TableDisputes = ({ disputes, page, pageSize, loading, onPageChange, total,
         pageSize,
         total,
         showSizeChanger: true,
+        hideOnSinglePage: true,
         onChange: onPageChange
       }}
       scroll={{ x: 1220 }}

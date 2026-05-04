@@ -12,7 +12,7 @@ type Props = {
   loading: boolean
   onPageChange: (page: number, pageSize: number) => void
   onDelete: (id: string) => void
-  onView: (record: UserResponse) => void
+  onView: (id: string) => void
 }
 
 const TableStaff = ({ staffList, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
@@ -56,15 +56,6 @@ const TableStaff = ({ staffList, page, pageSize, loading, onPageChange, total, o
       width: 150
     },
     {
-      title: 'Xác thực',
-      dataIndex: 'isVerified',
-      key: 'isVerified',
-      width: 150,
-      align: 'center',
-      render: (isVerified: boolean) =>
-        isVerified ? <Tag color="blue">Đã xác minh</Tag> : <Tag color="warning">Chưa xác minh</Tag>
-    },
-    {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
@@ -81,7 +72,7 @@ const TableStaff = ({ staffList, page, pageSize, loading, onPageChange, total, o
       fixed: 'right',
       render: (_: any, record: UserResponse) => (
         <>
-          <TableAction showView showDelete onView={() => onView(record)} onDelete={() => onDelete(record._id)} />
+          <TableAction showView showDelete onView={() => onView(record._id)} onDelete={() => onDelete(record._id)} />
         </>
       )
     }

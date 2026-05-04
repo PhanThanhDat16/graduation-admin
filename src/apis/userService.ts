@@ -26,5 +26,15 @@ export const userService = {
   resentOTP: async (param: { email: string; purpose: string }) => await axiosInstance.post('/email/resent-otp', param),
 
   verifyOTP: async (param: { email: string; otp: string; purpose: string }) =>
-    await axiosInstance.post('/email/verify-otp', param)
+    await axiosInstance.post('/email/verify-otp', param),
+
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+    return await axiosInstance.post('/upload/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  }
 }

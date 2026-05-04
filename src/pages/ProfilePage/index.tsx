@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Avatar,
   Button,
@@ -31,13 +31,14 @@ type ProfileFormValues = {
   birthday: Dayjs | null
   gender: string
   address: string
-  avatar: string
+  avatar: string | null
 }
 
 const ProfilePage = () => {
   const [form] = Form.useForm()
   const [passwordForm] = Form.useForm()
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [isChangeEmailModal, setIsChangeEmailModal] = useState(false)
@@ -48,6 +49,47 @@ const ProfilePage = () => {
   const { user, fetchMe } = useAuthStore()
 
   const [profile, setProfile] = useState(() => ({ ...user }))
+
+  useEffect(() => {
+    if (user) {
+      setProfile({ ...user })
+      form.setFieldsValue({
+        fullName: user.fullName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        birthday: user.birthday ? dayjs(user.birthday) : null,
+        gender: user.gender || '',
+        address: user.address || '',
+        avatar: user.avatar || null
+      })
+    }
+  }, [user, form])
+
+  const handleBeforeUpload = async (file: File) => {
+    const isLt1M = file.size / 1024 / 1024 < 1
+    if (!isLt1M) {
+      message.error('Ảnh phải nhỏ hơn 1MB!')
+      return false
+    }
+
+    try {
+      setUploading(true)
+      const res = await userService.uploadAvatar(file)
+      const avatar = res.data.data.image
+      await userService.editProfile({ avatar }).then(() => {
+        fetchMe()
+      })
+      message.success('Cập nhật ảnh đại diện thành công.')
+      setProfile((p: any) => ({ ...p, avatar: avatar }))
+      form.setFieldsValue({ avatar: avatar })
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+      message.error('Tải ảnh lên thất bại.')
+    } finally {
+      setUploading(false)
+    }
+    return false
+  }
 
   const handleRequestChangeOtp = async (purpose: string) => {
     try {
@@ -113,15 +155,8 @@ const ProfilePage = () => {
     setSaving(true)
     try {
       await fetchUpdateProfile(values)
-      form.setFieldsValue({
-        fullName: values.fullName,
-        email: values.email,
-        phone: values.phone,
-        birthday: values.birthday,
-        gender: values.gender,
-        address: values.address
-      })
       message.success('Đã cập nhật thông tin.')
+      await fetchMe()
     } catch (error) {
       console.error('Error submitting profile form:', error)
       message.error('Cập nhật thông tin thất bại.')
@@ -161,12 +196,14 @@ const ProfilePage = () => {
         <Row gutter={[24, 24]}>
           <Col xs={24} md={8} style={{ textAlign: 'center' }}>
             <Space vertical size="middle" style={{ width: '100%' }}>
-              <Avatar size={112} icon={<UserOutlined />} />
-              <Upload accept="image/*" showUploadList={false}>
-                <Button icon={<CameraOutlined />}>Đổi ảnh đại diện</Button>
+              <Avatar size={112} src={profile.avatar} icon={<UserOutlined />} />
+              <Upload accept="image/*" showUploadList={false} beforeUpload={handleBeforeUpload}>
+                <Button icon={<CameraOutlined />} loading={uploading}>
+                  Đổi ảnh đại diện
+                </Button>
               </Upload>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                JPG/PNG, tối đa 2MB (giới hạn khi có API).
+                JPG/PNG, tối đa 1MB.
               </Text>
               <Button icon={<LockOutlined />} onClick={() => setIsPasswordModalOpen(true)}>
                 Đổi mật khẩu
@@ -186,11 +223,15 @@ const ProfilePage = () => {
                 phone: profile.phone || '',
                 birthday: profile.birthday ? dayjs(profile.birthday) : null,
                 gender: profile.gender || '',
-                address: profile.address || ''
+                address: profile.address || '',
+                avatar: profile.avatar || null
               }}
               onFinish={handleSubmit}
               requiredMark="optional"
             >
+              <Form.Item name="avatar" hidden>
+                <Input />
+              </Form.Item>
               <Form.Item label="Họ và tên" name="fullName" rules={[{ required: true, message: 'Nhập họ tên' }]}>
                 <Input maxLength={120} />
               </Form.Item>

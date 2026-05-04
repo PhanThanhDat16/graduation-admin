@@ -24,10 +24,10 @@ import type { UserResponse } from '@/types/user'
 
 const { Title, Text } = Typography
 
-const FreelancerDetail = () => {
+const UserDetail = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [freelancer, setFreelancer] = useState<UserResponse | null>(null)
+  const [user, setUser] = useState<UserResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [form] = Form.useForm()
@@ -38,7 +38,7 @@ const FreelancerDetail = () => {
       setLoading(true)
       const res = await userService.getUserById(id)
       const data = res.data
-      setFreelancer(data)
+      setUser(data)
       form.setFieldsValue({
         fullName: data.fullName,
         email: data.email,
@@ -49,7 +49,7 @@ const FreelancerDetail = () => {
         address: data.address
       })
     } catch (error) {
-      console.error('Failed to fetch freelancer detail:', error)
+      console.error('Failed to fetch user detail:', error)
     } finally {
       setLoading(false)
     }
@@ -66,14 +66,14 @@ const FreelancerDetail = () => {
       const payload = {
         ...values,
         birthday: values.birthday ? dayjs(values.birthday).toISOString() : undefined,
-        role: freelancer?.role,
+        role: user?.role,
         status: values.status === 'active' ? 'active' : 'disabled'
       }
       await userService.updateUser(id, payload)
-      message.success('Cập nhật freelancer thành công')
+      message.success('Cập nhật user thành công')
       fetchDetail()
     } catch (error: any) {
-      console.error('Failed to update freelancer:', error)
+      console.error('Failed to update user:', error)
       message.error(error?.response?.data?.message || 'Thao tác thất bại')
     } finally {
       setSaving(false)
@@ -88,8 +88,8 @@ const FreelancerDetail = () => {
     )
   }
 
-  if (!freelancer) {
-    return <div>Không tìm thấy freelancer</div>
+  if (!user) {
+    return <div>Không tìm thấy user</div>
   }
 
   return (
@@ -99,7 +99,7 @@ const FreelancerDetail = () => {
       </Button>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={3} style={{ margin: 0 }}>
-          {freelancer.role.toUpperCase()}: {freelancer.fullName}
+          {user.role.toUpperCase()}: {user.fullName}
         </Title>
         <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => form.submit()}>
           Lưu thay đổi
@@ -112,10 +112,10 @@ const FreelancerDetail = () => {
             <Col xs={24} md={8} style={{ textAlign: 'center' }}>
               <Space vertical size="middle" style={{ width: '100%' }}>
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                  {freelancer.avatar ? (
+                  {user.avatar ? (
                     <img
-                      src={freelancer.avatar}
-                      alt={freelancer.fullName}
+                      src={user.avatar}
+                      alt={user.fullName}
                       style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover' }}
                     />
                   ) : (
@@ -136,16 +136,12 @@ const FreelancerDetail = () => {
                   )}
                 </div>
                 <Descriptions column={1} size="small">
-                  <Descriptions.Item label="Mã user">{freelancer._id}</Descriptions.Item>
+                  <Descriptions.Item label="Mã user">{user._id}</Descriptions.Item>
                   <Descriptions.Item label="Xác minh">
-                    {freelancer.isVerified ? (
-                      <Tag color="blue">Đã xác minh</Tag>
-                    ) : (
-                      <Tag color="warning">Chưa xác minh</Tag>
-                    )}
+                    {user.isVerified ? <Tag color="blue">Đã xác minh</Tag> : <Tag color="warning">Chưa xác minh</Tag>}
                   </Descriptions.Item>
                   <Descriptions.Item label="Tham gia">
-                    {dayjs(freelancer.createdAt).format('DD/MM/YYYY HH:mm')}
+                    {dayjs(user.createdAt).format('DD/MM/YYYY HH:mm')}
                   </Descriptions.Item>
                 </Descriptions>
               </Space>
@@ -213,4 +209,4 @@ const FreelancerDetail = () => {
   )
 }
 
-export default FreelancerDetail
+export default UserDetail

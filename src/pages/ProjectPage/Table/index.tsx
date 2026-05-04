@@ -110,6 +110,7 @@ const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total,
         pageSize,
         total,
         showSizeChanger: true,
+        hideOnSinglePage: true,
         onChange: onPageChange
       }}
       scroll={{ x: 1220 }}

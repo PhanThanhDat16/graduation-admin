@@ -54,10 +54,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ loading: true })
       const res = await authService.fetchMe()
       const userData = res.data.data
-      if (userData.role !== 'admin' && userData.role !== 'staff') {
-        await get().logoutUnauthorized()
-        return
-      }
 
       set({ user: userData })
     } catch (error) {
@@ -79,8 +75,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (!user) {
         await fetchMe()
-      } else if (user.role !== 'admin' && user.role !== 'staff') {
-        await get().logoutUnauthorized()
       }
     } catch (error) {
       if (error === 401) {

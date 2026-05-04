@@ -12,7 +12,9 @@ import {
   theme,
   Tooltip,
   Skeleton,
-  message
+  message,
+  Spin,
+  Image
 } from 'antd'
 import {
   ArrowLeftOutlined,
@@ -20,32 +22,21 @@ import {
   InfoCircleOutlined,
   UserOutlined,
   FileTextOutlined,
-  CustomerServiceOutlined
+  CustomerServiceOutlined,
+  PictureOutlined
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { useState, useRef, useEffect } from 'react'
 import { chatService } from '@/apis/chatService'
+import { uploadImageService } from '@/apis/uploadImageService'
 import { useAuthStore } from '@/store/useAuthStore'
-import type { ConversationResponse } from '@/types/chat'
-import { CHAT_PAGE, CONTRACT_PAGE, FREELANCER_PAGE } from '@/constants'
+import type { ConversationResponse, MessageListResponse, MessageResponse } from '@/types/chat'
+import type { Pagination } from '@/types'
+import { CHAT_PAGE, CONTRACT_PAGE, USERDETAIL_PAGE } from '@/constants'
 import { useStoreSocketIO } from '@/store/useSocketStore'
 import { emitJoinConversation } from '@/services/socketConversation'
 
 const { Title, Text } = Typography
-
-interface Message {
-  _id: string
-  content: string
-  senderId?:
-    | {
-        _id: string
-        full_name: string
-        avatar: string
-      }
-    | string
-  senderName?: string
-  createdAt: string
-}
 
 const ChatDetail = () => {
   const { id } = useParams<{ id: string }>()
@@ -55,14 +46,67 @@ const ChatDetail = () => {
   const { socket } = useStoreSocketIO()
 
   const [conversation, setConversation] = useState<ConversationResponse | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<MessageResponse[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [pagination, setPagination] = useState<Pagination | null>(null)
   const [sending, setSending] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !id || !user) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      message.error('Vui lòng chọn tệp hình ảnh')
+      return
+    }
+
+    // Validate file size (e.g., 1MB)
+    if (file.size > 1024 * 1024) {
+      message.error('Kích thước ảnh không được vượt quá 1MB')
+      return
+    }
+
+    setSending(true)
+    try {
+      const res = await uploadImageService.uploadImage(file)
+      const imageUrl = res.data?.image || res.data?.data?.image
+
+      if (imageUrl) {
+        const payload = {
+          content: imageUrl,
+          userId: user._id,
+          senderType: 'staff',
+          guestName: 'Admin',
+          type: 'image'
+        }
+        const msgRes = await chatService.createMessageInGroup(id, payload)
+        const newMessage = msgRes.data?.data || msgRes.data
+        if (newMessage) {
+          setMessages((prev) => [...(Array.isArray(prev) ? prev : []), newMessage])
+        }
+        setTimeout(scrollToBottom, 100)
+      } else {
+        message.error('Không tìm thấy đường dẫn ảnh sau khi tải lên')
+      }
+    } catch (error) {
+      console.error('Failed to upload image:', error)
+      message.error('Tải ảnh lên thất bại')
+    } finally {
+      setSending(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
   }
 
   const fetchData = async () => {
@@ -75,14 +119,12 @@ const ChatDetail = () => {
       ])
 
       const convData = convRes.data?.data || convRes.data || null
+      const msgListData = msgRes.data as MessageListResponse
       setConversation(convData)
 
-      const msgData = Array.isArray(msgRes.data?.data)
-        ? msgRes.data.data
-        : Array.isArray(msgRes.data)
-          ? msgRes.data
-          : []
+      const msgData = Array.isArray(msgListData.data) ? msgListData.data : Array.isArray(msgRes.data) ? msgRes.data : []
       setMessages(msgData)
+      setPagination(msgListData.pagination)
     } catch (error) {
       console.error('Failed to fetch chat details:', error)
       message.error('Không thể tải nội dung cuộc hội thoại')
@@ -90,6 +132,42 @@ const ChatDetail = () => {
     } finally {
       setLoading(false)
       setTimeout(scrollToBottom, 100)
+    }
+  }
+
+  const fetchMoreMessages = async () => {
+    if (!id || !pagination || pagination.page >= pagination.totalPages || loadingMore) return
+
+    setLoadingMore(true)
+    const container = chatContainerRef.current
+    const previousScrollHeight = container?.scrollHeight || 0
+
+    try {
+      const nextPage = pagination.page + 1
+      const msgRes = await chatService.getMessagesInGroup(id, { page: nextPage })
+      const msgListData = msgRes.data as MessageListResponse
+
+      const newMessages = Array.isArray(msgListData.data) ? msgListData.data : []
+      setMessages((prev) => [...newMessages, ...prev])
+      setPagination(msgListData.pagination)
+
+      // Adjust scroll after DOM update to maintain position
+      setTimeout(() => {
+        if (container) {
+          container.scrollTop = container.scrollHeight - previousScrollHeight
+        }
+      }, 0)
+    } catch (error) {
+      console.error('Failed to fetch more messages:', error)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop } = e.currentTarget
+    if (scrollTop === 0 && !loadingMore && pagination && pagination.page < pagination.totalPages) {
+      fetchMoreMessages()
     }
   }
 
@@ -123,10 +201,6 @@ const ChatDetail = () => {
     }
   }, [socket, id])
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
   const handleSendMessage = async () => {
     if (!inputValue.trim() || !id || !user || sending) return
 
@@ -135,6 +209,7 @@ const ChatDetail = () => {
       const payload = {
         content: inputValue,
         userId: user._id,
+        senderType: 'staff',
         guestName: 'Admin',
         type: 'text'
       }
@@ -145,6 +220,7 @@ const ChatDetail = () => {
         setMessages((prev) => [...(Array.isArray(prev) ? prev : []), newMessage])
       }
       setInputValue('')
+      setTimeout(scrollToBottom, 100)
     } catch (error) {
       console.error('Failed to send message:', error)
       message.error('Gửi tin nhắn thất bại')
@@ -175,11 +251,11 @@ const ChatDetail = () => {
         }
       case 'user_support':
         return {
-          title: conversation.ownerInfo?.full_name || 'Người dùng',
+          title: conversation.ownerId?.fullName || 'Người dùng',
           subtitle: 'Hỗ trợ thành viên',
           icon: <UserOutlined />,
           color: token.colorPrimary,
-          link: `${FREELANCER_PAGE}/${conversation.ownerId}`
+          link: `${USERDETAIL_PAGE}/${conversation.ownerId._id}`
         }
       default:
         return {
@@ -245,7 +321,7 @@ const ChatDetail = () => {
         className="flex flex-col flex-1 overflow-hidden"
         styles={{
           body: {
-            overflow: 'auto',
+            overflow: 'hidden',
             padding: 0,
             display: 'flex',
             flexDirection: 'column',
@@ -254,7 +330,18 @@ const ChatDetail = () => {
         }}
         style={{ borderRadius: 8 }}
       >
-        <div className="flex-1 p-6 space-y-4 overflow-y-auto" style={{ background: token.colorBgLayout + '40' }}>
+        <div
+          ref={chatContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 p-6 space-y-4 overflow-y-auto"
+          style={{ background: token.colorBgLayout + '40' }}
+        >
+          {loadingMore && (
+            <div className="flex justify-center py-2">
+              <Spin size="small" />
+            </div>
+          )}
+
           {!loading && (!Array.isArray(messages) || messages.length === 0) ? (
             <div className="flex items-center justify-center h-full">
               <Text type="secondary">Chưa có tin nhắn nào trong cuộc hội thoại này.</Text>
@@ -263,6 +350,7 @@ const ChatDetail = () => {
             (Array.isArray(messages) ? messages : []).map((msg, idx) => {
               const msgSenderId = typeof msg.senderId === 'object' ? msg.senderId?._id : msg.senderId
               const isMe = msgSenderId === user?._id
+              const isStaff = msg.senderType === 'staff'
               const prevMsg = idx > 0 ? messages[idx - 1] : null
               const prevSenderId = prevMsg
                 ? typeof prevMsg.senderId === 'object'
@@ -271,11 +359,10 @@ const ChatDetail = () => {
                 : null
               const showSender = idx === 0 || prevSenderId !== msgSenderId
 
-              const senderName =
-                typeof msg.senderId === 'object' ? msg.senderId?.full_name : msg.senderName || 'Người dùng'
+              const senderName = typeof msg.senderId === 'object' ? msg.senderId?.fullName : 'Người dùng'
 
               return (
-                <div key={msg._id || idx} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                <div key={msg._id || idx} className={`flex flex-col ${isStaff ? 'items-end' : 'items-start'}`}>
                   {!isMe && showSender && (
                     <Text type="secondary" style={{ fontSize: 11, marginBottom: 4, marginLeft: 4 }}>
                       {senderName}
@@ -284,16 +371,39 @@ const ChatDetail = () => {
                   <div
                     style={{
                       maxWidth: '70%',
-                      padding: '8px 16px',
+                      padding: msg.type === 'image' ? '4px' : '8px 16px',
                       borderRadius: 16,
                       backgroundColor: isMe ? token.colorPrimary : token.colorBgContainer,
                       color: isMe ? '#fff' : token.colorText,
                       boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                       borderTopRightRadius: isMe ? 4 : 16,
-                      borderTopLeftRadius: !isMe ? 4 : 16
+                      borderTopLeftRadius: !isMe ? 4 : 16,
+                      overflow: 'hidden'
                     }}
                   >
-                    <Text style={{ color: 'inherit' }}>{msg.content}</Text>
+                    {msg.type === 'image' ? (
+                      <Image
+                        src={msg.content}
+                        alt="sent"
+                        style={{ maxWidth: '100%', borderRadius: 12, display: 'block' }}
+                        placeholder={
+                          <div
+                            style={{
+                              width: 200,
+                              height: 200,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: token.colorBgLayout
+                            }}
+                          >
+                            <Spin />
+                          </div>
+                        }
+                      />
+                    ) : (
+                      <Text style={{ color: 'inherit' }}>{msg.content}</Text>
+                    )}
                   </div>
                   <Text type="secondary" style={{ fontSize: 10, marginTop: 2 }}>
                     {dayjs(msg.createdAt).format('HH:mm')}
@@ -309,6 +419,25 @@ const ChatDetail = () => {
         <Divider style={{ margin: 0 }} />
         <div className="p-4" style={{ backgroundColor: token.colorBgContainer }}>
           <Row gutter={12} align="middle">
+            <Col flex="none">
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+              <Tooltip title="Gửi ảnh">
+                <Button
+                  type="text"
+                  shape="circle"
+                  icon={<PictureOutlined />}
+                  size="large"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                />
+              </Tooltip>
+            </Col>
             <Col flex="auto">
               <Input
                 placeholder="Nhập tin nhắn..."

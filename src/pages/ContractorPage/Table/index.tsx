@@ -82,6 +82,7 @@ const TableContractors = ({ contractors, page, pageSize, loading, onPageChange, 
         pageSize,
         total,
         showSizeChanger: true,
+        hideOnSinglePage: true,
         onChange: onPageChange
       }}
       scroll={{ x: 1220 }}

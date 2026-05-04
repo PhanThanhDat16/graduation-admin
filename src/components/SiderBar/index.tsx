@@ -55,7 +55,7 @@ const AppSidebar = ({ collapsed }: Props) => {
     {
       key: 'transaction',
       icon: <TransactionOutlined />,
-      label: 'Giao dịch hợp đồng'
+      label: 'Giao dịch'
     },
     {
       key: 'dispute',
@@ -79,9 +79,9 @@ const AppSidebar = ({ collapsed }: Props) => {
     }
   ]
 
-  // Hide wallet and staff items for staff role
+  // Hide staff items for staff role
   if (user?.role === 'staff') {
-    items = items.filter((item) => item.key !== 'wallet' && item.key !== 'staff')
+    items = items.filter((item) => item.key !== 'staff')
   }
 
   const handleNavigate = (e: any) => {
@@ -105,7 +105,7 @@ const AppSidebar = ({ collapsed }: Props) => {
         </div>
         {!collapsed && (
           <span className="truncate text-lg font-bold" style={{ color: token.colorText }}>
-            FreeLanceVN
+            FreeWork
           </span>
         )}
       </div>

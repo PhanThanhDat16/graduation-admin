@@ -5,7 +5,7 @@ import { userService } from '@/apis/userService'
 import type { UserQuery, UserResponse } from '@/types/user'
 import TableFreelancers from './Table'
 import AppFilters, { type FilterConfig } from '@/components/common/AppFilters'
-import { FREELANCER_PAGE } from '@/constants'
+import { USERDETAIL_PAGE } from '@/constants'
 
 const { Title, Text } = Typography
 
@@ -118,7 +118,7 @@ const FreelancerPage = () => {
   }
 
   const handleViewDetail = (record: UserResponse) => {
-    navigate(`${FREELANCER_PAGE}/${record._id}`)
+    navigate(`${USERDETAIL_PAGE}/${record._id}`)
   }
 
   const fetchFreelancers = async () => {

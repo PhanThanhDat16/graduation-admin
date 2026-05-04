@@ -1,138 +1,228 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Tag, Typography, Button, Space, Form, Input, Select, Row, Col, message } from 'antd'
-import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons'
+import { Card, Tag, Typography, Button, Space, Row, Col, Descriptions, Avatar, Divider } from 'antd'
+import { ArrowLeftOutlined, UserOutlined, WalletOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import {
-  MOCK_WALLET_OPERATIONS,
-  WALLET_OP_STATUS_LABEL,
-  WALLET_OP_TYPE_LABEL,
-  type WalletOpStatus,
-  type WalletOpType,
-  type WalletUserRole
-} from '@/mock/walletOperations.mock'
 import { formatVnd } from '@/utils/formatCurrency'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { walletService } from '@/apis/walletService'
+import type { WalletResponse } from '@/types/wallet'
+import TableWalletDetail from '../Table/TableDetail'
+import type { FilterConfig } from '@/components/common/AppFilters'
+import AppFilters from '@/components/common/AppFilters'
+import { useAuthStore } from '@/store/useAuthStore'
+import { TRANSACTION_PAGE } from '@/constants'
+import type { TransactionQuery, TransactionResponse } from '@/types/transaction'
 
 const { Title, Text } = Typography
 
-const ROLE_LABEL: Record<WalletUserRole, string> = {
-  freelancer: 'Nhà thầu',
-  client: 'Chủ dự án / Khách'
-}
-
-const ROLE_COLOR: Record<WalletUserRole, string> = {
-  freelancer: 'geekblue',
-  client: 'cyan'
-}
-
-const OP_COLOR: Record<WalletOpType, string> = {
-  deposit: 'green',
-  withdraw: 'gold'
-}
+const WalletTransactionFilters: FilterConfig[] = [
+  {
+    type: 'select',
+    name: 'type',
+    placeholder: 'Loại giao dịch',
+    options: [
+      { label: 'Nạp tiền', value: 'deposit' },
+      { label: 'Rút tiền', value: 'withdraw' }
+    ],
+    label: 'Loại giao dịch'
+  },
+  {
+    type: 'select',
+    name: 'methodPayment',
+    placeholder: 'Cổng thanh toán',
+    options: [
+      { label: 'MoMo', value: 'momo' },
+      { label: 'VNPay', value: 'vnpay' }
+    ],
+    label: 'Cổng thanh toán'
+  },
+  {
+    type: 'select',
+    name: 'status',
+    placeholder: 'Trạng thái',
+    options: [
+      { label: 'Thành công', value: 'success' },
+      { label: 'Đang xử lý', value: 'pending' },
+      { label: 'Đã từ chối', value: 'rejected' }
+    ],
+    label: 'Trạng thái'
+  }
+]
 
 const WalletDetail = () => {
+  const { user } = useAuthStore()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [detail, setDetail] = useState(() => MOCK_WALLET_OPERATIONS.find((w) => w.id === id))
-  const [form] = Form.useForm()
-  const [saving, setSaving] = useState(false)
+  const [wallet, setWallet] = useState<WalletResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [tableLoading, setTableLoading] = useState(false)
+  const [query, setQuery] = useState<TransactionQuery>({
+    page: 1,
+    limit: 10,
+    type: '',
+    methodPayment: '',
+    status: ''
+  })
+  const [transactions, setTransactions] = useState<TransactionResponse[]>([])
 
-  if (!detail) {
+  const handleGetValueFilter = (values: Record<string, any>) => {
+    setQuery((prev) => ({
+      ...prev,
+      page: 1,
+      type: values.type || '',
+      methodPayment: values.methodPayment || '',
+      status: values.status || ''
+    }))
+  }
+
+  const handleChangePageSizeTable = (newPage: number, newSize: number) => {
+    setQuery((prev) => ({
+      ...prev,
+      page: newPage,
+      limit: newSize
+    }))
+  }
+
+  const handleViewDetail = (record: TransactionResponse) => {
+    navigate(`${TRANSACTION_PAGE}/${record._id}`, { state: { transaction: record } })
+  }
+
+  const fetchTransactions = async () => {
+    if (!id) return
+    try {
+      setTableLoading(true)
+      const res = await walletService.getUserWalletTransactions(id, query)
+      const payload = res.data || {
+        data: [],
+        pagination: { total: 0, page: 1, limit: 10, totalPages: 0 }
+      }
+      setTransactions(payload.data || [])
+      if (payload.pagination) {
+        setQuery((prev) => ({
+          ...prev,
+          pagination: payload.pagination
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error)
+    } finally {
+      setTableLoading(false)
+    }
+  }
+
+  const fetchWalletDetail = async () => {
+    if (!id) return
+    try {
+      setLoading(true)
+      const res = await walletService.getUserWallet(id)
+      setWallet(res.data.data)
+    } catch (error) {
+      console.error('Failed to fetch wallet detail:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchWalletDetail()
+  }, [id])
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [id, query.page, query.limit, query.type, query.methodPayment, query.status])
+
+  if (loading) {
+    return <Card loading={true} />
+  }
+
+  if (!wallet) {
     return (
-      <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+      <Space vertical size="large" style={{ width: '100%' }}>
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
           Quay lại
         </Button>
-        <div>Không tìm thấy giao dịch ví</div>
+        <div>Không tìm thấy thông tin ví</div>
       </Space>
     )
   }
 
-  const handleSave = async (values: any) => {
-    setSaving(true)
-    setTimeout(() => {
-      setDetail((prev) => (prev ? { ...prev, ...values } : prev))
-      setSaving(false)
-      message.success('Cập nhật giao dịch ví thành công (Mock)')
-    }, 500)
-  }
-
   return (
-    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+    <Space vertical size="large" style={{ width: '100%' }}>
       <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
         Quay lại
       </Button>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Title level={3} style={{ margin: 0 }}>
-          Giao dịch ví: {detail.code}
+          Chi tiết ví người dùng
         </Title>
-        <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => form.submit()}>
-          Lưu thay đổi
-        </Button>
       </div>
 
-      <Card>
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{
-            status: detail.status,
-            channel: detail.channel
-          }}
-          onFinish={handleSave}
-        >
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Mã giao dịch">
-                <Text strong>{detail.code}</Text>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Trạng thái" name="status">
-                <Select
-                  options={(Object.keys(WALLET_OP_STATUS_LABEL) as WalletOpStatus[]).map((k) => ({
-                    label: WALLET_OP_STATUS_LABEL[k],
-                    value: k
-                  }))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+      <Card
+        title={
+          <Space>
+            <WalletOutlined />
+            <span>Thông tin ví: {wallet._id}</span>
+          </Space>
+        }
+      >
+        <Row gutter={[24, 24]}>
+          <Col xs={24} md={8}>
+            <div style={{ textAlign: 'center', padding: '20px', borderRight: '1px solid #f0f0f0' }}>
+              <Avatar size={100} src={wallet.userId.avatar} icon={<UserOutlined />} />
+              <Title level={4} style={{ marginTop: 16, marginBottom: 4 }}>
+                {wallet.userId.fullName}
+              </Title>
+              <Tag color={wallet.userId.role === 'freelancer' ? 'success' : 'blue'}>
+                {wallet.userId.role.toUpperCase()}
+              </Tag>
+              <div style={{ marginTop: 8 }}>
+                <Text type="secondary">{wallet.userId.email}</Text>
+              </div>
+            </div>
+          </Col>
+          <Col xs={24} md={16}>
+            <Descriptions column={1} bordered size="small">
+              <Descriptions.Item label="Mã người dùng">
+                <Text copyable>{wallet.userId._id}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Số dư hiện tại">
+                <Text strong style={{ fontSize: '20px', color: '#1890ff' }}>
+                  {user?.role === 'staff' ? '********' : formatVnd(wallet.balance)}
+                </Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Ngày tạo ví">
+                {dayjs(wallet.createdAt).format('DD/MM/YYYY HH:mm:ss')}
+              </Descriptions.Item>
+              <Descriptions.Item label="Cập nhật lần cuối">
+                {dayjs(wallet.updatedAt).format('DD/MM/YYYY HH:mm:ss')}
+              </Descriptions.Item>
+            </Descriptions>
+          </Col>
+        </Row>
+      </Card>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Người dùng">
-                <Text>{detail.userDisplayName}</Text>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Vai trò">
-                <Tag color={ROLE_COLOR[detail.userRole]}>{ROLE_LABEL[detail.userRole]}</Tag>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Loại">
-                <Tag color={OP_COLOR[detail.type]}>{WALLET_OP_TYPE_LABEL[detail.type]}</Tag>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Số tiền">
-                <Text strong>{formatVnd(detail.amountVnd)}</Text>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item label="Kênh / cổng thanh toán" name="channel">
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="Thời gian">
-            <Text type="secondary">{dayjs(detail.createdAt).format('DD/MM/YYYY HH:mm:ss')}</Text>
-          </Form.Item>
-        </Form>
+      <Card
+        title={
+          <Space>
+            <Divider type="vertical" style={{ backgroundColor: '#1890ff', height: '1.2em' }} />
+            <span>Lịch sử giao dịch</span>
+          </Space>
+        }
+      >
+        <Space wrap style={{ marginBottom: 16 }}>
+          <AppFilters filters={WalletTransactionFilters} onChange={handleGetValueFilter} />
+        </Space>
+        <TableWalletDetail
+          wallettransactions={transactions}
+          loading={tableLoading}
+          page={query.page}
+          pageSize={query.limit}
+          total={query?.pagination?.total || 0}
+          onPageChange={handleChangePageSizeTable}
+          onDelete={() => {}}
+          onView={handleViewDetail}
+        />
       </Card>
     </Space>
   )

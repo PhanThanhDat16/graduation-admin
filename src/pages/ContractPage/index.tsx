@@ -27,6 +27,10 @@ const ContractFilters: FilterConfig[] = [
         value: 'draft'
       },
       {
+        label: 'Ngừng nhận yêu cầu',
+        value: 'closed_for_requests'
+      },
+      {
         label: 'Đang chờ duyệt',
         value: 'pending_agreement'
       },
@@ -52,7 +56,7 @@ const ContractFilters: FilterConfig[] = [
       },
       {
         label: 'Đã hủy',
-        value: 'canceled'
+        value: 'cancelled'
       }
     ],
     label: 'Trạng thái'
