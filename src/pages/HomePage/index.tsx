@@ -1,16 +1,17 @@
-import { useMemo, useState, type ReactNode, useContext, useEffect, useRef } from 'react'
-import { Card, Col, DatePicker, Row, Segmented, Space, Statistic, Typography, message, theme } from 'antd'
+import { useMemo, useState, type ReactNode, useContext, useEffect, useRef, useCallback } from 'react'
+import { Card, Col, DatePicker, Row, Segmented, Space, Statistic, Spin, Typography, message, theme } from 'antd'
 import { FileProtectOutlined, CheckCircleOutlined, WarningOutlined, DollarOutlined } from '@ant-design/icons'
 import { Line, Column } from '@ant-design/plots'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import 'dayjs/locale/vi'
 import {
-  buildDashboardMock,
+  dashboardService,
   toActivityLineData,
   toRevenueColumnData,
-  type DashboardGranularity
-} from '@/mock/homeDashboard.mock'
+  type DashboardGranularity,
+  type DashboardData
+} from '@/apis/dashboardService'
 import { formatVnd } from '@/utils/formatCurrency'
 import { ThemeContext } from '@/contexts/ThemeContext'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -31,20 +32,45 @@ function defaultRange(g: DashboardGranularity): [Dayjs, Dayjs] {
 }
 const { useToken } = theme
 
+const EMPTY_DATA: DashboardData = {
+  buckets: [],
+  summary: { totalContracts: 0, completedProjects: 0, disputeCases: 0, revenueVnd: 0 }
+}
+
 const HomePage = () => {
   const { token } = useToken()
   const { isDark } = useContext(ThemeContext)
   const [granularity, setGranularity] = useState<DashboardGranularity>('month')
   const [range, setRange] = useState<[Dayjs, Dayjs]>(() => defaultRange('month'))
-
-  const { buckets, summary } = useMemo(() => buildDashboardMock(range, granularity), [range, granularity])
-
-  const activityData = useMemo(() => toActivityLineData(buckets), [buckets])
-  const revenueData = useMemo(() => toRevenueColumnData(buckets), [buckets])
+  const [dashboardData, setDashboardData] = useState<DashboardData>(EMPTY_DATA)
+  const [loading, setLoading] = useState(false)
 
   const location = useLocation()
   const navigate = useNavigate()
   const hasShownMessage = useRef(false)
+
+  // Fetch dashboard data from API
+  const fetchDashboard = useCallback(async (r: [Dayjs, Dayjs], g: DashboardGranularity) => {
+    setLoading(true)
+    try {
+      const data = await dashboardService.getDashboard(r[0].toISOString(), r[1].toISOString(), g)
+      setDashboardData(data)
+    } catch (error) {
+      console.error('[HomePage] Error fetching dashboard:', error)
+      setDashboardData(EMPTY_DATA)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Fetch on mount and when range/granularity change
+  useEffect(() => {
+    fetchDashboard(range, granularity)
+  }, [range, granularity, fetchDashboard])
+
+  const { buckets, summary } = dashboardData
+  const activityData = useMemo(() => toActivityLineData(buckets), [buckets])
+  const revenueData = useMemo(() => toRevenueColumnData(buckets), [buckets])
 
   useEffect(() => {
     if (location.state?.message && !hasShownMessage.current) {
@@ -191,102 +217,104 @@ const HomePage = () => {
   }, [granularity])
 
   return (
-    <Space vertical size="large" style={{ width: '100%' }} className="">
-      <div>
-        <Title level={3} style={{ margin: 0 }}>
-          Tổng quan vận hành
-        </Title>
-        <Text type="secondary">
-          Theo dõi hợp đồng, tiến độ dự án, tranh chấp và doanh thu phí dịch vụ (hệ thống trung gian kết nối nhà thầu và
-          chủ đầu tư).
-        </Text>
-      </div>
+    <Spin spinning={loading}>
+      <Space vertical size="large" style={{ width: '100%' }} className="">
+        <div>
+          <Title level={3} style={{ margin: 0 }}>
+            Tổng quan vận hành
+          </Title>
+          <Text type="secondary">
+            Theo dõi hợp đồng, tiến độ dự án, tranh chấp và doanh thu phí dịch vụ (hệ thống trung gian kết nối nhà thầu
+            và chủ đầu tư).
+          </Text>
+        </div>
 
-      <Card size="small">
-        <Space wrap align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
-          <Segmented
-            value={granularity}
-            onChange={onGranularityChange}
-            options={[
-              { label: 'Theo ngày', value: 'day' },
-              { label: 'Theo tháng', value: 'month' },
-              { label: 'Theo năm', value: 'year' }
-            ]}
-          />
-          <DatePicker.RangePicker
-            value={range}
-            onChange={onRangeChange}
-            picker={pickerMode}
-            format={granularity === 'year' ? 'YYYY' : granularity === 'month' ? 'MM/YYYY' : 'DD/MM/YYYY'}
-            presets={rangePresets}
-            allowClear={false}
-          />
-        </Space>
-      </Card>
+        <Card size="small">
+          <Space wrap align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
+            <Segmented
+              value={granularity}
+              onChange={onGranularityChange}
+              options={[
+                { label: 'Theo ngày', value: 'day' },
+                { label: 'Theo tháng', value: 'month' },
+                { label: 'Theo năm', value: 'year' }
+              ]}
+            />
+            <DatePicker.RangePicker
+              value={range}
+              onChange={onRangeChange}
+              picker={pickerMode}
+              format={granularity === 'year' ? 'YYYY' : granularity === 'month' ? 'MM/YYYY' : 'DD/MM/YYYY'}
+              presets={rangePresets}
+              allowClear={false}
+            />
+          </Space>
+        </Card>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Hợp đồng (trong kỳ)"
-              value={summary.totalContracts}
-              prefix={<FileProtectOutlined />}
-              styles={{
-                content: { color: token.colorPrimary }
-              }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Dự án hoàn thành"
-              value={summary.completedProjects}
-              prefix={<CheckCircleOutlined />}
-              styles={{
-                content: { color: token.colorSuccess }
-              }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Vụ tranh chấp phát sinh"
-              value={summary.disputeCases}
-              prefix={<WarningOutlined />}
-              styles={{
-                content: { color: token.colorWarning }
-              }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Doanh thu phí dịch vụ"
-              value={summary.revenueVnd}
-              formatter={(v): ReactNode => formatVnd(Number(v))}
-              prefix={<DollarOutlined />}
-              style={{ color: token.colorInfo }}
-            />
-          </Card>
-        </Col>
-      </Row>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Hợp đồng (trong kỳ)"
+                value={summary.totalContracts}
+                prefix={<FileProtectOutlined />}
+                styles={{
+                  content: { color: token.colorPrimary }
+                }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Dự án hoàn thành"
+                value={summary.completedProjects}
+                prefix={<CheckCircleOutlined />}
+                styles={{
+                  content: { color: token.colorSuccess }
+                }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Vụ tranh chấp phát sinh"
+                value={summary.disputeCases}
+                prefix={<WarningOutlined />}
+                styles={{
+                  content: { color: token.colorWarning }
+                }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Doanh thu phí dịch vụ"
+                value={summary.revenueVnd}
+                formatter={(v): ReactNode => formatVnd(Number(v))}
+                prefix={<DollarOutlined />}
+                style={{ color: token.colorInfo }}
+              />
+            </Card>
+          </Col>
+        </Row>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} xl={14}>
-          <Card title="Hoạt động theo thời gian" variant="borderless">
-            <Line {...lineConfig} />
-          </Card>
-        </Col>
-        <Col xs={24} xl={10}>
-          <Card title="Doanh thu phí dịch vụ (VND)" variant="borderless">
-            <Column {...columnConfig} />
-          </Card>
-        </Col>
-      </Row>
-    </Space>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} xl={14}>
+            <Card title="Hoạt động theo thời gian" variant="borderless">
+              <Line {...lineConfig} />
+            </Card>
+          </Col>
+          <Col xs={24} xl={10}>
+            <Card title="Doanh thu phí dịch vụ (VND)" variant="borderless">
+              <Column {...columnConfig} />
+            </Card>
+          </Col>
+        </Row>
+      </Space>
+    </Spin>
   )
 }
 
