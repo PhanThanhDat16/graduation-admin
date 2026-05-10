@@ -4,15 +4,21 @@ import type { AuthState } from '@/types/store'
 import { message } from 'antd'
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  accessToken: null,
+  accessToken: localStorage.getItem('accessToken'),
   user: null,
   loading: false,
 
   setAccessToken: (accessToken) => {
+    if (accessToken) {
+      localStorage.setItem('accessToken', accessToken)
+    } else {
+      localStorage.removeItem('accessToken')
+    }
     set({ accessToken })
   },
 
   clearState: () => {
+    localStorage.removeItem('accessToken')
     set({ accessToken: null, user: null, loading: false })
   },
 

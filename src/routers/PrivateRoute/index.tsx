@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 
 const PrivateRoute = () => {
-  const { accessToken, user, loading, refresh, fetchMe } = useAuthStore()
+  const { accessToken, user, loading, fetchMe } = useAuthStore()
   const [starting, setStarting] = useState(true)
 
   const hasInit = useRef(false)
@@ -13,9 +13,10 @@ const PrivateRoute = () => {
     hasInit.current = true
 
     const run = async () => {
-      if (!accessToken) {
-        await refresh()
-      } else if (!user) {
+      // accessToken đã persist trong localStorage
+      // Nếu có token nhưng chưa có user → gọi fetchMe
+      // Nếu token hết hạn → interceptor tự gọi refresh-token
+      if (accessToken && !user) {
         await fetchMe()
       }
       setStarting(false)
