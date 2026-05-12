@@ -15,7 +15,7 @@ const ProjectFilters: FilterConfig[] = [
   {
     type: 'input',
     name: 'keyword',
-    placeholder: 'Tìm kiếm theo...',
+    placeholder: 'Tìm kiếm theo tên dự án...',
     label: 'Tìm kiếm'
   },
   {

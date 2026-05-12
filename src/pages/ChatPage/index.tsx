@@ -111,7 +111,11 @@ const ChatPage = () => {
         <List.Item.Meta
           avatar={
             <Badge dot={unreadCount > 0} offset={[-2, 32]} color="red">
-              <Avatar icon={displayInfo.icon} style={{ backgroundColor: displayInfo.color }} size="large" />
+              <Avatar
+                src={item.type === 'contract_chat' ? displayInfo.icon : item.ownerId.avatar}
+                style={{ backgroundColor: displayInfo.color }}
+                size="large"
+              />
             </Badge>
           }
           title={

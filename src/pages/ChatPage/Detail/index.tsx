@@ -298,7 +298,11 @@ const ChatDetail = () => {
               onClick={() => navigate(CHAT_PAGE)}
               style={{ fontSize: 18 }}
             />
-            <Avatar size={40} icon={headerInfo.icon} style={{ backgroundColor: headerInfo.color }} />
+            <Avatar
+              size={40}
+              src={conversation?.type === 'contract_chat' ? headerInfo.icon : conversation?.ownerId.avatar}
+              style={{ backgroundColor: headerInfo.color }}
+            />
             <div>
               <Title level={5} style={{ margin: 0 }}>
                 {headerInfo.title}

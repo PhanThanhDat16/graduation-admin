@@ -1,15 +1,23 @@
 import type { Pagination } from '.'
 
-export type DisputeStatus = 'open' | 'negotiating' | 'admin_review' | 'resolved' | 'auto_closed'
+export type DisputeStatus =
+  | 'pending_reasons'
+  | 'waiting_escalation'
+  | 'open'
+  | 'negotiating'
+  | 'admin_review'
+  | 'resolved'
+  | 'auto_closed'
+  | 'staff_cancelled'
 
 export type DisputeResponse = {
   _id: string
-  contractId: { _id: string; fullName: string; avatar: string }
+  contractId: { _id: string; projectId: { _id: string; title: string } }
   contractorId: { _id: string; fullName: string; avatar: string }
   freelancerId: { _id: string; fullName: string; avatar: string }
   openedBy: { _id: string; fullName: string; avatar: string }
   status: DisputeStatus
-  resolutionType: ['extend', 'cancel', 'split', 'auto_close']
+  resolutionType: 'extend' | 'cancel' | 'split' | 'auto_close'
   contractorReason: string
   freelancerReason: string
   contractorRequestedResolution: string
@@ -19,8 +27,8 @@ export type DisputeResponse = {
   freelancerAmount: number
   contractorAmount: number
   newDeadline: string
-  adminDecision: string
-  adminId: { _id: string; fullName: string; avatar: string }
+  staffDecision: string
+  staffId?: { _id: string; fullName: string; avatar: string }
   deadlineSendAdmin: string
   escalated_at: string
   createdAt: string
@@ -35,7 +43,7 @@ export type DisputeListResponse = {
 export type DisputeQuery = {
   page: number
   limit: number
-  contract_id?: string
+  contractId?: string
   status?: string
   pagination?: Pagination
 }

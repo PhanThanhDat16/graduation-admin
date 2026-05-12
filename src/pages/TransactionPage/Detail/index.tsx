@@ -16,7 +16,7 @@ import { TransactionService } from '@/apis/transactionService'
 const { Title, Text } = Typography
 
 const statusMap: Record<TransactionStatus, { color: string; label: string }> = {
-  pending: { color: 'processing', label: 'Đang xử lý' },
+  pending: { color: 'processing', label: 'Đang chờ' },
   completed: { color: 'success', label: 'Thành công' },
   failed: { color: 'error', label: 'Thất bại' },
   cancelled: { color: 'default', label: 'Đã hủy' }
@@ -127,7 +127,7 @@ const TransactionDetail = () => {
 
           <Descriptions.Item label="Số tiền">
             <Text strong style={{ fontSize: '18px', color: isPositive ? '#52c41a' : '#f5222d' }}>
-              {isPositive ? '+' : '-'}
+              {isPositive ? '+' : ''}
               {formatVnd(transaction.amount)}
             </Text>
           </Descriptions.Item>

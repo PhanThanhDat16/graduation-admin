@@ -33,35 +33,53 @@ const COLOR_STATUS: Record<DisputeStatus, string> = {
 const TableDisputes = ({ disputes, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
   const columns: ColumnType<DisputeResponse>[] = [
     {
-      title: 'Mã tranh chấp',
-      dataIndex: '_id',
-      key: '_id'
+      title: 'Mã hợp đồng',
+      dataIndex: 'contractId',
+      key: 'contractId',
+      render: (contractId: any) => {
+        return <p>{contractId._id}</p>
+      }
     },
     {
-      title: 'Mã hợp đồng',
-      dataIndex: 'contract_id',
-      key: 'contract_id'
+      title: 'Tên dự án',
+      dataIndex: 'contractId',
+      key: 'contractId',
+      render: (contractId: any) => {
+        return <p>{contractId.projectId.title}</p>
+      }
     },
     {
       title: 'Chủ đầu tư',
-      dataIndex: 'contractorName',
-      key: 'contractorName'
+      dataIndex: 'contractorId',
+      key: 'contractorId',
+      render: (contractorId: any) => {
+        return <p>{contractorId.fullName}</p>
+      }
     },
     {
       title: 'Nhà thầu',
-      dataIndex: 'freelancerName',
-      key: 'freelancerName'
+      dataIndex: 'freelancerId',
+      key: 'freelancerId',
+      render: (freelancerId: any) => {
+        return <p>{freelancerId.fullName}</p>
+      }
     },
     {
       title: 'Người giải quyết',
-      dataIndex: 'admin_id',
-      key: 'admin_id'
+      dataIndex: 'staffId',
+      key: 'staffId',
+      render: (staffId?: any) => {
+        return <p>{staffId?.fullName || 'Chưa có'}</p>
+      }
     },
     {
-      title: 'Phí nền tảng',
-      dataIndex: 'adminFee',
-      key: 'adminFee',
-      width: 200
+      title: 'Người mở',
+      dataIndex: 'openedBy',
+      key: 'openedBy',
+      width: 200,
+      render: (openedBy: any) => {
+        return <p>{openedBy.fullName}</p>
+      }
     },
     {
       title: 'Trạng thái',
