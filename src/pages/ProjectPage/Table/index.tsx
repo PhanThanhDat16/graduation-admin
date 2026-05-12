@@ -17,13 +17,15 @@ type Props = {
 const LABEL_STATUS: Record<ProjectStatus, string> = {
   open: 'Mở đăng ký',
   closed: 'Đóng đăng ký',
-  draft: 'Nháp'
+  draft: 'Nháp',
+  progress: 'Đang tiến hành'
 }
 
 const COLOR_STATUS: Record<ProjectStatus, string> = {
   open: 'success',
   closed: 'error',
-  draft: 'defaul'
+  draft: 'defaul',
+  progress: 'processing'
 }
 
 const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {

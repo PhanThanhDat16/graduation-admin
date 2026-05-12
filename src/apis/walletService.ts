@@ -8,8 +8,5 @@ export const walletService = {
   getUserWallet: async (userId: string) => await axiosInstance.get(`/wallets/admin/users/${userId}`),
 
   getUserWalletTransactions: async (userId: string, query: TransactionQuery) =>
-    await axiosInstance.get(`/wallets/admin/users/${userId}/transactions`, { params: query }),
-
-  getAllWithdrawRequests: async (query: WalletQuery) =>
-    await axiosInstance.get('/wallets/staff/withdraw-requests', { params: query })
+    await axiosInstance.get(`/wallets/admin/users/${userId}/transactions`, { params: query })
 }

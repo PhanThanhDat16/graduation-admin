@@ -1,11 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Tag, Typography, Button, Space, Descriptions, Spin, Form } from 'antd'
+import { Card, Tag, Typography, Button, Space, Descriptions, Spin, Form, message, Modal } from 'antd'
 import {
   ArrowLeftOutlined,
   WalletOutlined,
   UserOutlined,
   ClockCircleOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { formatVnd } from '@/utils/formatCurrency'
@@ -36,6 +38,7 @@ const TransactionDetail = () => {
   const navigate = useNavigate()
   const [transaction, setTransaction] = useState<TransactionResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
   const [form] = Form.useForm()
 
   const fetchTransaction = async () => {
@@ -59,17 +62,41 @@ const TransactionDetail = () => {
     fetchTransaction()
   }, [id])
 
+  const handleUpdateStatus = async (status: TransactionStatus) => {
+    if (!id) return
+
+    const actionText = status === 'completed' ? 'đồng ý' : 'hủy'
+
+    Modal.confirm({
+      title: `Xác nhận ${actionText} yêu cầu rút tiền`,
+      content: `Bạn có chắc chắn muốn ${actionText} yêu cầu rút tiền này không?`,
+      onOk: async () => {
+        try {
+          setActionLoading(true)
+          await TransactionService.approveWithDraw(id, { status })
+          message.success(`${status === 'completed' ? 'Đã chấp nhận' : 'Đã hủy'} yêu cầu rút tiền thành công`)
+          fetchTransaction()
+        } catch (error) {
+          console.error(`Failed to update transaction status:`, error)
+          message.error(`Thao tác thất bại. Vui lòng thử lại sau.`)
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
+  }
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
-        <Spin size="large" description="Đang tải thông tin giao dịch..." />
+        <Spin size="large" tip="Đang tải thông tin giao dịch..." />
       </div>
     )
   }
 
   if (!transaction) {
     return (
-      <Space orientation="vertical" size="large" style={{ width: '100%' }}>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
           Quay lại
         </Button>
@@ -87,9 +114,10 @@ const TransactionDetail = () => {
   const typeInfo = transaction.type ? typeMap[transaction.type] : { color: 'default', label: 'Không xác định' }
   const statusInfo = transaction.status ? statusMap[transaction.status] : { color: 'default', label: 'Không xác định' }
   const isPositive = ['deposit', 'escrow_release', 'refund'].includes(transaction.type || '')
+  const canAction = transaction.type === 'withdraw' && transaction.status === 'pending'
 
   return (
-    <Space vertical size="large" style={{ width: '100%' }}>
+    <Space direction="vertical" size="large" style={{ width: '100%' }}>
       <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
         Quay lại
       </Button>
@@ -98,6 +126,27 @@ const TransactionDetail = () => {
         <Title level={3} style={{ margin: 0 }}>
           Chi tiết giao dịch
         </Title>
+        {canAction && (
+          <Space>
+            <Button
+              type="primary"
+              icon={<CheckOutlined />}
+              onClick={() => handleUpdateStatus('completed')}
+              loading={actionLoading}
+              style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+            >
+              Đồng ý
+            </Button>
+            <Button
+              danger
+              icon={<CloseOutlined />}
+              onClick={() => handleUpdateStatus('cancelled')}
+              loading={actionLoading}
+            >
+              Hủy
+            </Button>
+          </Space>
+        )}
       </div>
 
       <Card
@@ -117,7 +166,7 @@ const TransactionDetail = () => {
           <Descriptions.Item label="Người thực hiện" span={2}>
             <Space>
               <UserOutlined />
-              <Text copyable>{transaction.userId.fullName}</Text>
+              <Text copyable>{transaction.userId?.fullName || '—'}</Text>
             </Space>
           </Descriptions.Item>
 

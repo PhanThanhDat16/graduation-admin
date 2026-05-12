@@ -6,5 +6,8 @@ export const TransactionService = {
     await axiosInstance.get(`/wallets/admin/transactions`, { params: query }),
 
   getTransactionById: async (transactionId: string) =>
-    await axiosInstance.get(`/wallets/admin/transactions/${transactionId}`).then((res) => res.data)
+    await axiosInstance.get(`/wallets/admin/transactions/${transactionId}`).then((res) => res.data),
+
+  approveWithDraw: async (transactionId: string, data: { status: string }) =>
+    await axiosInstance.post(`/wallets/staff/withdraw-requests/${transactionId}`, data)
 }

@@ -126,8 +126,8 @@ const ProjectDetail = () => {
                       options={[
                         { label: 'Hoạt động (Open)', value: 'open' },
                         { label: 'Đã giao (Closed)', value: 'closed' },
-                        { label: 'Hoàn thành (Completed)', value: 'completed' },
-                        { label: 'Đã hủy (Canceled)', value: 'canceled' }
+                        { label: 'Nháp (Draft)', value: 'draft' },
+                        { label: 'Đang tiến hành (progress)', value: 'progress' }
                       ]}
                     />
                   </Form.Item>
