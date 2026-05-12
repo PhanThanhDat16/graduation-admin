@@ -1,5 +1,5 @@
 import TableAction from '@/components/common/TableAction'
-import type { TransactionResponse, TransactionStatus } from '@/types/transaction'
+import type { TransactionResponse, TransactionStatus, TransactionType } from '@/types/transaction'
 import { formatVnd } from '@/utils/formatCurrency'
 import { Table, Tag } from 'antd'
 import type { ColumnType } from 'antd/es/table'
@@ -17,18 +17,20 @@ type Props = {
   onView: (record: TransactionResponse) => void
 }
 
-const LABEL_STATUS: Record<TransactionStatus, string> = {
-  pending: 'Đang chờ',
-  completed: 'Thành công',
-  failed: 'Thất bại',
-  cancelled: 'Đã hủy'
+const TYPEMAP: Record<TransactionType, { color: string; label: string }> = {
+  deposit: { color: 'green', label: 'Nạp tiền' },
+  withdraw: { color: 'volcano', label: 'Rút tiền' },
+  escrow_deposit: { color: 'blue', label: 'Ký quỹ' },
+  escrow_release: { color: 'cyan', label: 'Giải ngân' },
+  refund: { color: 'purple', label: 'Hoàn tiền' },
+  admin_fee: { color: 'gold', label: 'Phí hệ thống' }
 }
 
-const COLOR_STATUS: Record<TransactionStatus, string> = {
-  pending: 'processing',
-  completed: 'success',
-  failed: 'warning',
-  cancelled: 'error'
+const STATUSMAP: Record<TransactionStatus, { color: string; label: string }> = {
+  pending: { color: 'processing', label: 'Đang chờ' },
+  completed: { color: 'success', label: 'Thành công' },
+  failed: { color: 'warning', label: 'Thất bại' },
+  cancelled: { color: 'error', label: 'Đã hủy' }
 }
 
 const TableTransaction = ({ transactions, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
@@ -50,9 +52,8 @@ const TableTransaction = ({ transactions, page, pageSize, loading, onPageChange,
       key: 'type',
       align: 'center',
       width: 150,
-      render: (type: string) => {
-        const isDeposit = type === 'deposit'
-        return <Tag color={isDeposit ? 'green' : 'volcano'}>{isDeposit ? 'Nạp tiền' : 'Rút tiền'}</Tag>
+      render: (type: TransactionType) => {
+        return <Tag color={TYPEMAP[type].color}>{TYPEMAP[type as TransactionType].label}</Tag>
       }
     },
     {
@@ -76,7 +77,7 @@ const TableTransaction = ({ transactions, page, pageSize, loading, onPageChange,
       width: 150,
       align: 'center',
       render: (status: TransactionStatus) => {
-        return <Tag color={COLOR_STATUS[status]}>{LABEL_STATUS[status]}</Tag>
+        return <Tag color={STATUSMAP[status].color}>{STATUSMAP[status].label}</Tag>
       }
     },
     {

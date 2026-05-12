@@ -14,7 +14,7 @@ const ContractFilters: FilterConfig[] = [
   {
     type: 'input',
     name: 'keyword',
-    placeholder: 'Tìm kiếm theo...',
+    placeholder: 'Tìm kiếm Id, tên người dùng...',
     label: 'Tìm kiếm'
   },
   {

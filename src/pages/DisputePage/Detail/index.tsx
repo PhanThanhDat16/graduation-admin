@@ -1,114 +1,346 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Typography, Button, Space, Form, Input, Select, message, Row, Col } from 'antd'
-import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons'
+import {
+  Card,
+  Typography,
+  Button,
+  Space,
+  Form,
+  Row,
+  Col,
+  Spin,
+  Tag,
+  Descriptions,
+  Divider,
+  Modal,
+  Input,
+  Select,
+  InputNumber,
+  DatePicker,
+  message
+} from 'antd'
+import { ArrowLeftOutlined, CheckOutlined, CloseOutlined, UserAddOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { DISPUTE_STATUS_LABEL, MOCK_DISPUTES, type DisputeStatus } from '@/mock/disputes.mock'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { DisputeResponse } from '@/types/dispute'
+import { disputeService } from '@/apis/disputeService'
+import { useAuthStore } from '@/store/useAuthStore'
 
-const { Title, Text } = Typography
+const { Title, Text, Paragraph } = Typography
+const { TextArea } = Input
 
 const DisputeDetail = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [detail, setDetail] = useState(() => MOCK_DISPUTES.find((d) => d.id === id))
-  const [form] = Form.useForm()
-  const [saving, setSaving] = useState(false)
+  const { user } = useAuthStore()
+  const [dispute, setDispute] = useState<DisputeResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
 
-  if (!detail) {
+  // Modals state
+  const [isResolveModalOpen, setIsResolveModalOpen] = useState(false)
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const [resolveForm] = Form.useForm()
+  const [cancelForm] = Form.useForm()
+
+  const fetchDetail = async () => {
+    if (!id) return
+    try {
+      setLoading(true)
+      const res = await disputeService.getDisputeById(id)
+      setDispute(res.data)
+    } catch (error) {
+      console.error('Failed to fetch dispute detail:', error)
+      message.error('Không thể tải thông tin tranh chấp')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchDetail()
+  }, [id])
+
+  const handleJoin = async () => {
+    if (!id) return
+    try {
+      setActionLoading(true)
+      await disputeService.joinDispute(id)
+      message.success('Bạn đã nhận giải quyết tranh chấp này')
+      fetchDetail()
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Thao tác thất bại')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleResolve = async (values: any) => {
+    if (!id) return
+    try {
+      setActionLoading(true)
+      await disputeService.resolveDispute(id, {
+        ...values,
+        newDeadline: values.newDeadline ? values.newDeadline.toDate() : undefined
+      })
+      message.success('Đã gửi quyết định giải quyết tranh chấp')
+      setIsResolveModalOpen(false)
+      fetchDetail()
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Thao tác thất bại')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleCancel = async (values: any) => {
+    if (!id) return
+    try {
+      setActionLoading(true)
+      await disputeService.cancelDispute(id, values)
+      message.success('Đã hủy tranh chấp')
+      setIsCancelModalOpen(false)
+      fetchDetail()
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || 'Thao tác thất bại')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  if (loading) {
     return (
-      <Space orientation="vertical" size="large" style={{ width: '100%' }}>
-        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
-          Quay lại
-        </Button>
-        <div>Không tìm thấy tranh chấp</div>
-      </Space>
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
     )
   }
 
-  const handleSave = async (values: any) => {
-    setSaving(true)
-    setTimeout(() => {
-      setDetail((prev) => (prev ? { ...prev, ...values } : prev))
-      setSaving(false)
-      message.success('Cập nhật trạng thái tranh chấp thành công (Mock)')
-    }, 500)
+  if (!dispute) {
+    return <div>Không tìm thấy tranh chấp</div>
+  }
+
+  const isAssignedToMe = dispute.staffId?._id === user?._id
+  const isUnassigned = !dispute.staffId
+
+  const getStatusTag = (status: string) => {
+    const colors: Record<string, string> = {
+      open: 'blue',
+      negotiating: 'orange',
+      admin_review: 'purple',
+      resolved: 'green',
+      auto_closed: 'default'
+    }
+    return <Tag color={colors[status] || 'default'}>{status.toUpperCase()}</Tag>
   }
 
   return (
     <Space orientation="vertical" size="large" style={{ width: '100%' }}>
-      <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
-        Quay lại
-      </Button>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={3} style={{ margin: 0 }}>
-          Tranh chấp: {detail.code}
-        </Title>
-        <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => form.submit()}>
-          Lưu thay đổi
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
+          Quay lại
         </Button>
+        <Space>
+          {isUnassigned && dispute.status === 'open' && (
+            <>
+              <Button type="primary" icon={<UserAddOutlined />} loading={actionLoading} onClick={handleJoin}>
+                Nhận giải quyết
+              </Button>
+              <Button danger icon={<CloseOutlined />} onClick={() => setIsCancelModalOpen(true)}>
+                Hủy Tranh Chấp
+              </Button>
+            </>
+          )}
+          {isAssignedToMe && dispute.status === 'negotiating' && (
+            <>
+              <Button type="primary" icon={<CheckOutlined />} onClick={() => setIsResolveModalOpen(true)}>
+                Gửi Quyết Định
+              </Button>
+            </>
+          )}
+        </Space>
       </div>
 
-      <Card>
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{
-            summary: detail.summary,
-            status: detail.status
-          }}
-          onFinish={handleSave}
-        >
+      <Title level={3}>Chi tiết tranh chấp: {dispute._id}</Title>
+
+      <Row gutter={[16, 16]}>
+        <Col span={16}>
+          <Card title="Thông tin chung">
+            <Descriptions bordered column={2}>
+              <Descriptions.Item label="Hợp đồng" span={2}>
+                <Text strong>{dispute.contractId._id}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Dự án" span={2}>
+                {dispute.contractId.projectId.title} ({dispute.contractId.projectId._id})
+              </Descriptions.Item>
+              <Descriptions.Item label="Trạng thái">{getStatusTag(dispute.status)}</Descriptions.Item>
+              <Descriptions.Item label="Ngày tạo">
+                {dayjs(dispute.createdAt).format('DD/MM/YYYY HH:mm')}
+              </Descriptions.Item>
+              <Descriptions.Item label="Người giải quyết">
+                {dispute.staffId ? (
+                  <Space>
+                    <Text>{dispute.staffId.fullName}</Text>
+                    <Text type="secondary">({dispute.staffId._id})</Text>
+                  </Space>
+                ) : (
+                  <Text type="secondary">Chưa có</Text>
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="Người mở">
+                <Text>{dispute.openedBy.fullName}</Text>
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+
+          <Card title="Lý do và Yêu cầu" style={{ marginTop: 24 }}>
+            <Row gutter={24}>
+              <Col span={12}>
+                <Divider orientation="horizontal">Từ Chủ đầu tư</Divider>
+                <Paragraph>
+                  <Text strong>Lý do:</Text>
+                  <div className="mt-2 p-2 rounded text-justify">{dispute.contractorReason || 'N/A'}</div>
+                </Paragraph>
+                <Paragraph>
+                  <Text strong>Yêu cầu giải quyết:</Text>
+                  <div className="mt-2 p-2 rounded text-justify">{dispute.contractorRequestedResolution || 'N/A'}</div>
+                </Paragraph>
+                <Tag color={dispute.contractorAgreed ? 'green' : 'red'}>
+                  {dispute.contractorAgreed ? 'Đã đồng ý' : 'Chưa đồng ý'}
+                </Tag>
+              </Col>
+              <Col span={12}>
+                <Divider orientation="horizontal">Từ Nhà thầu</Divider>
+                <Paragraph>
+                  <Text strong>Lý do:</Text>
+                  <div className="mt-2 p-2 rounded text-justify">{dispute.freelancerReason || 'N/A'}</div>
+                </Paragraph>
+                <Paragraph>
+                  <Text strong>Yêu cầu giải quyết:</Text>
+                  <div className="mt-2 p-2 rounded text-justify">{dispute.freelancerRequestedResolution || 'N/A'}</div>
+                </Paragraph>
+                <Tag color={dispute.freelancerAgreed ? 'green' : 'red'}>
+                  {dispute.freelancerAgreed ? 'Đã đồng ý' : 'Chưa đồng ý'}
+                </Tag>
+              </Col>
+            </Row>
+          </Card>
+
+          {dispute.status === 'resolved' && (
+            <Card title="Quyết định giải quyết" style={{ marginTop: 24 }}>
+              <Descriptions bordered column={1}>
+                <Descriptions.Item label="Quyết định">{dispute.staffDecision}</Descriptions.Item>
+                <Descriptions.Item label="Loại giải quyết">{dispute.resolutionType}</Descriptions.Item>
+                <Descriptions.Item label="Số tiền Freelancer nhận">{dispute.freelancerAmount}</Descriptions.Item>
+                <Descriptions.Item label="Số tiền Contractor nhận">{dispute.contractorAmount}</Descriptions.Item>
+                <Descriptions.Item label="Thời gian giải quyết">
+                  {dispute.resolved_at ? dayjs(dispute.resolved_at).format('DD/MM/YYYY HH:mm') : 'N/A'}
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+          )}
+        </Col>
+
+        <Col span={8}>
+          <Card title="Các bên liên quan">
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <div>
+                <Text type="secondary">Chủ đầu tư</Text>
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
+                  <Text strong>{dispute.contractorId.fullName}</Text>
+                </div>
+              </div>
+              <Divider style={{ margin: '12px 0' }} />
+              <div>
+                <Text type="secondary">Nhà thầu</Text>
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
+                  <Text strong>{dispute.freelancerId.fullName}</Text>
+                </div>
+              </div>
+            </Space>
+          </Card>
+
+          <Card title="Thông tin bổ sung" style={{ marginTop: 24 }}>
+            <Descriptions column={1} size="small">
+              <Descriptions.Item label="Hết hạn gửi Admin">
+                {dayjs(dispute.deadlineSendAdmin).format('DD/MM/YYYY HH:mm')}
+              </Descriptions.Item>
+              <Descriptions.Item label="Chuyển Admin lúc">
+                {dispute.escalated_at ? dayjs(dispute.escalated_at).format('DD/MM/YYYY HH:mm') : 'N/A'}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Resolve Modal */}
+      <Modal
+        title="Gửi Quyết Định Giải Quyết"
+        open={isResolveModalOpen}
+        onCancel={() => setIsResolveModalOpen(false)}
+        onOk={() => resolveForm.submit()}
+        confirmLoading={actionLoading}
+        width={600}
+      >
+        <Form form={resolveForm} layout="vertical" onFinish={handleResolve} initialValues={{ resolutionType: 'split' }}>
+          <Form.Item
+            name="decision"
+            label="Nội dung quyết định"
+            rules={[{ required: true, message: 'Vui lòng nhập nội dung quyết định' }]}
+          >
+            <TextArea rows={4} placeholder="Nhập chi tiết quyết định giải quyết tranh chấp..." />
+          </Form.Item>
+
+          <Form.Item
+            name="resolutionType"
+            label="Loại giải quyết"
+            rules={[{ required: true, message: 'Vui lòng chọn loại giải quyết' }]}
+          >
+            <Select>
+              <Select.Option value="extend">Gia hạn</Select.Option>
+              <Select.Option value="cancel">Hủy hợp đồng</Select.Option>
+              <Select.Option value="split">Chia tiền</Select.Option>
+            </Select>
+          </Form.Item>
+
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item label="Mã vụ">
-                <Text strong>{detail.code}</Text>
+              <Form.Item name="freelancerAmount" label="Số tiền Freelancer nhận">
+                <InputNumber
+                  style={{ width: '100%' }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Trạng thái" name="status">
-                <Select
-                  options={(Object.keys(DISPUTE_STATUS_LABEL) as DisputeStatus[]).map((k) => ({
-                    label: DISPUTE_STATUS_LABEL[k],
-                    value: k
-                  }))}
+              <Form.Item name="contractorAmount" label="Số tiền Contractor nhận">
+                <InputNumber
+                  style={{ width: '100%' }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                 />
               </Form.Item>
             </Col>
           </Row>
 
-          <Form.Item label="Tóm tắt nội dung" name="summary">
-            <Input.TextArea rows={4} />
+          <Form.Item name="newDeadline" label="Hạn chót mới (nếu có)">
+            <DatePicker style={{ width: '100%' }} showTime />
           </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Dự án">
-                <Text>
-                  {detail.projectTitle} <Text type="secondary">({detail.projectCode})</Text>
-                </Text>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Mở lúc">
-                <Text>{dayjs(detail.openedAt).format('DD/MM/YYYY HH:mm')}</Text>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item label="Chủ dự án">
-                <Text>{detail.clientName}</Text>
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="Nhà thầu">
-                <Text>{detail.freelancerName}</Text>
-              </Form.Item>
-            </Col>
-          </Row>
         </Form>
-      </Card>
+      </Modal>
+
+      {/* Cancel Modal */}
+      <Modal
+        title="Hủy Tranh Chấp"
+        open={isCancelModalOpen}
+        onCancel={() => setIsCancelModalOpen(false)}
+        onOk={() => cancelForm.submit()}
+        confirmLoading={actionLoading}
+      >
+        <Form form={cancelForm} layout="vertical" onFinish={handleCancel}>
+          <Form.Item name="reason" label="Lý do hủy" rules={[{ required: true, message: 'Vui lòng nhập lý do hủy' }]}>
+            <TextArea rows={4} placeholder="Nhập lý do hủy tranh chấp này..." />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Space>
   )
 }

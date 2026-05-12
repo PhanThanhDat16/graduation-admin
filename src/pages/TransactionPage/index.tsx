@@ -27,7 +27,8 @@ const TransactionFilters: FilterConfig[] = [
     placeholder: 'Cổng thanh toán',
     options: [
       { label: 'MoMo', value: 'momo' },
-      { label: 'VNPay', value: 'vnpay' }
+      { label: 'VNPay', value: 'vnpay' },
+      { label: 'Wallet', value: 'wallet' }
     ],
     label: 'Cổng thanh toán'
   },
@@ -36,9 +37,10 @@ const TransactionFilters: FilterConfig[] = [
     name: 'status',
     placeholder: 'Trạng thái',
     options: [
-      { label: 'Thành công', value: 'success' },
-      { label: 'Đang xử lý', value: 'pending' },
-      { label: 'Đã từ chối', value: 'rejected' }
+      { label: 'Thành công', value: 'completed' },
+      { label: 'Đang chờ', value: 'pending' },
+      { label: 'Thất bại', value: 'failed' },
+      { label: 'Đã hủy', value: 'cancelled' }
     ],
     label: 'Trạng thái'
   }
@@ -119,7 +121,7 @@ const TransactionPage = () => {
     <Space vertical size="large" style={{ width: '100%' }}>
       <div>
         <Title level={3} style={{ margin: 0 }}>
-          Giao dịch dự án
+          Lịch sử giao dịch
         </Title>
         <Text type="secondary">Luồng tiền gắn với hợp đồng: giữ tạm, giải ngân cột mốc, phí nền tảng, hoàn tiền…</Text>
       </div>
