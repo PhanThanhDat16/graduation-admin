@@ -19,10 +19,25 @@ type Props = {
   extraActions?: ExtraAction[]
 }
 
-const TableAction = ({ showEdit, showDelete, showView, onEdit, onDelete, onView }: Props) => {
+const TableAction = ({ showEdit, showDelete, showView, onEdit, onDelete, onView, extraActions }: Props) => {
   return (
     <>
       <Space>
+        {extraActions?.map((action, index) => (
+          <Tooltip key={index} title={action.tooltip}>
+            <Button
+              type="link"
+              size="small"
+              icon={action.icon}
+              style={{
+                color: action.color || '#1677ff',
+                cursor: 'pointer'
+              }}
+              onClick={action.onClick}
+            />
+          </Tooltip>
+        ))}
+
         {showView && (
           <Tooltip title="Xem chi tiết">
             <Button

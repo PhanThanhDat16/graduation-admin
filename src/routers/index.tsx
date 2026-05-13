@@ -15,7 +15,8 @@ import {
   STAFF_PAGE,
   TRANSACTION_PAGE,
   WALLET_PAGE,
-  USERDETAIL_PAGE
+  USERDETAIL_PAGE,
+  WITHDRAW_PAGE
 } from '../constants'
 import NotFoundPage from '../pages/NotFoundPage'
 import PrivateRoute from './PrivateRoute'
@@ -44,6 +45,7 @@ import SettingPage from '../pages/SettingPage'
 import ProfilePage from '../pages/ProfilePage'
 import LoginPage from '@/pages/LoginPage'
 import UserDetail from '@/pages/UserDetailPage'
+import WithDrawPage from '@/pages/Withdraw'
 
 const AppRouters = () => {
   return (
@@ -62,6 +64,7 @@ const AppRouters = () => {
             <Route path={`${USERDETAIL_PAGE}/:id`} element={<UserDetail />} />
             <Route path={TRANSACTION_PAGE} element={<TransactionPage />} />
             <Route path={`${TRANSACTION_PAGE}/:id`} element={<TransactionDetail />} />
+            <Route path={WITHDRAW_PAGE} element={<WithDrawPage />} />
             <Route path={DISPUTE_PAGE} element={<DisputePage />} />
             <Route path={`${DISPUTE_PAGE}/:id`} element={<DisputeDetail />} />
             <Route path={CHAT_PAGE} element={<ChatPage />} />
