@@ -14,28 +14,16 @@ type Props = {
   onView: (record: ContractResponse) => void
 }
 
-const LABEL_STATUS: Record<ContractStatus, string> = {
-  draft: 'Nháp',
-  pending_agreement: 'Đang chờ duyệt',
-  closed_for_requests: 'Ngừng nhận yêu cầu',
-  waiting_payment: 'Chờ đặt cọc',
-  running: 'Đang thi công',
-  submitted: 'Đã nộp',
-  completed: 'Đã hoàn thành',
-  dispute: 'Tranh chấp',
-  cancelled: 'Đã hủy'
-}
-
-const COLOR_STATUS: Record<ContractStatus, string> = {
-  draft: 'default',
-  pending_agreement: 'yellow',
-  closed_for_requests: 'volcano',
-  waiting_payment: 'orange',
-  running: 'success',
-  submitted: 'cyan',
-  completed: 'processing',
-  dispute: 'magenta',
-  cancelled: 'error'
+const STATUSMAP: Record<ContractStatus, { color: string; label: string }> = {
+  draft: { color: 'default', label: 'Nháp' },
+  pending_agreement: { color: 'yellow', label: 'Đang chờ duyệt' },
+  closed_for_requests: { color: 'volcano', label: 'Ngừng nhận yêu cầu' },
+  waiting_payment: { color: 'orange', label: 'Chờ đặt cọc' },
+  running: { color: 'success', label: 'Đang thi công' },
+  submitted: { color: 'cyan', label: 'Đã nộp' },
+  completed: { color: 'processing', label: 'Đã hoàn thành' },
+  dispute: { color: 'magenta', label: 'Tranh chấp' },
+  cancelled: { color: 'error', label: 'Đã hủy' }
 }
 
 const TableContracts = ({ contracts, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
@@ -90,7 +78,7 @@ const TableContracts = ({ contracts, page, pageSize, loading, onPageChange, tota
       width: 150,
       align: 'center',
       render: (status: ContractStatus) => {
-        return <Tag color={COLOR_STATUS[status]}>{LABEL_STATUS[status]}</Tag>
+        return <Tag color={STATUSMAP[status].color}>{STATUSMAP[status].label}</Tag>
       }
     },
     {

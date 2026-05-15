@@ -9,39 +9,23 @@ import TableWithDraw from './Table'
 const { Title, Text } = Typography
 
 const WithDrawFilters: FilterConfig[] = [
-  // {
-  //   type: 'select',
-  //   name: 'type',
-  //   placeholder: 'Loại giao dịch',
-  //   options: [
-  //     { label: 'Nạp tiền', value: 'deposit' },
-  //     { label: 'Rút tiền', value: 'withdraw' }
-  //   ],
-  //   label: 'Loại giao dịch'
-  // },
-  // {
-  //   type: 'select',
-  //   name: 'methodPayment',
-  //   placeholder: 'Cổng thanh toán',
-  //   options: [
-  //     { label: 'MoMo', value: 'momo' },
-  //     { label: 'VNPay', value: 'vnpay' },
-  //     { label: 'Wallet', value: 'wallet' }
-  //   ],
-  //   label: 'Cổng thanh toán'
-  // },
-  // {
-  //   type: 'select',
-  //   name: 'status',
-  //   placeholder: 'Trạng thái',
-  //   options: [
-  //     { label: 'Thành công', value: 'completed' },
-  //     { label: 'Đang chờ', value: 'pending' },
-  //     { label: 'Thất bại', value: 'failed' },
-  //     { label: 'Đã hủy', value: 'cancelled' }
-  //   ],
-  //   label: 'Trạng thái'
-  // }
+  {
+    type: 'input',
+    name: 'accountId',
+    placeholder: 'Mã khách hàng',
+    label: 'Mã khách hàng'
+  },
+  {
+    type: 'select',
+    name: 'status',
+    placeholder: 'Trạng thái',
+    options: [
+      { label: 'Đang chờ', value: 'pending' },
+      { label: 'Đã duyệt', value: 'approved' },
+      { label: 'Hủy yêu cầu', value: 'rejected' }
+    ],
+    label: 'Trạng thái'
+  }
 ]
 
 const WithDrawPage = () => {
@@ -59,8 +43,7 @@ const WithDrawPage = () => {
       ...prev,
       page: 1,
       status: values.status || '',
-      type: values.type || '',
-      methodPayment: values.methodPayment || ''
+      userId: values.userId || ''
     }))
   }
 

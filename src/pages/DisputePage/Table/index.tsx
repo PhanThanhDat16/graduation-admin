@@ -14,20 +14,15 @@ type Props = {
   onView: (record: DisputeResponse) => void
 }
 
-const LABEL_STATUS: Record<DisputeStatus, string> = {
-  open: 'Mở tranh chấp',
-  negotiating: 'Đang đàm phán',
-  admin_review: 'Đang xem xét',
-  resolved: 'Đã giải quyết',
-  auto_closed: 'Đã tự đóng'
-}
-
-const COLOR_STATUS: Record<DisputeStatus, string> = {
-  open: 'warning',
-  negotiating: 'processing',
-  admin_review: 'cyan',
-  resolved: 'success',
-  auto_closed: 'error'
+const STATUSMAP: Record<DisputeStatus, { color: string; label: string }> = {
+  pending_reasons: { color: 'warning', label: 'Đang chờ lý do' },
+  waiting_escalation: { color: 'warning', label: 'Đang chờ xử lý' },
+  open: { color: 'warning', label: 'Mở tranh chấp' },
+  negotiating: { color: 'processing', label: 'Đang đàm phán' },
+  admin_review: { color: 'processing', label: 'Đang xem xét' },
+  resolved: { color: 'success', label: 'Đã giải quyết' },
+  auto_closed: { color: 'error', label: 'Đã tự đóng' },
+  staff_cancelled: { color: 'error', label: 'Hủy tranh chấp' }
 }
 
 const TableDisputes = ({ disputes, page, pageSize, loading, onPageChange, total, onView, onDelete }: Props) => {
@@ -87,7 +82,7 @@ const TableDisputes = ({ disputes, page, pageSize, loading, onPageChange, total,
       key: 'status',
       width: 150,
       render: (status: DisputeStatus) => {
-        return <Tag color={COLOR_STATUS[status]}>{LABEL_STATUS[status]}</Tag>
+        return <Tag color={STATUSMAP[status].color}>{STATUSMAP[status].label}</Tag>
       }
     },
     {

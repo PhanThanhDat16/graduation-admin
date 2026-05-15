@@ -1,5 +1,7 @@
 import type { Pagination } from '.'
 
+export type WithDrawStatus = 'pending' | 'approved' | 'rejected' | 'paid'
+
 export type WithDrawResponse = {
   _id: string
   accountId: {
@@ -14,7 +16,7 @@ export type WithDrawResponse = {
   }
   amount: number
   amountReceived: number
-  status: string
+  status: WithDrawStatus
   staffId: string
   processeAt: string
 }

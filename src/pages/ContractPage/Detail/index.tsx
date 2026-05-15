@@ -16,7 +16,7 @@ import {
   message,
   theme
 } from 'antd'
-import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons'
 import { contractService } from '@/apis/contractService'
 import type { ContractResponse } from '@/types/contract'
 
@@ -92,8 +92,8 @@ const ContractDetail = () => {
         <Title level={3} style={{ margin: 0 }}>
           Chi tiết hợp đồng: {contract._id}
         </Title>
-        <Button type="primary" icon={<SaveOutlined />} loading={saving} onClick={() => form.submit()}>
-          Lưu thay đổi
+        <Button type="primary" color="red" icon={<DeleteOutlined />} loading={saving} onClick={() => form.submit()}>
+          Xóa
         </Button>
       </div>
 

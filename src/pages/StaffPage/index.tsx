@@ -298,7 +298,11 @@ const StaffPage = () => {
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item label="Số điện thoại" name="phone" rules={[{ required: true, message: 'Nhập số điện thoại' }]}>
+              <Form.Item
+                label="Số điện thoại"
+                name="phone"
+                rules={[{ required: true, type: 'tel', message: 'Nhập số điện thoại' }]}
+              >
                 <Input placeholder="09xxxxxxxx" />
               </Form.Item>
             </Col>

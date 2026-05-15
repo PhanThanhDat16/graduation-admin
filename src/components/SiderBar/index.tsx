@@ -12,7 +12,7 @@ import {
   WalletOutlined,
   WarningOutlined
 } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import type { MenuProps } from 'antd/es/menu'
 import { useMemo } from 'react'
@@ -53,6 +53,7 @@ const SIDEBAR_ITEMS: MenuItem[] = [
 const AppSidebar = ({ collapsed }: Props) => {
   const { token } = useToken()
   const nav = useNavigate()
+  const location = useLocation()
   const { user } = useAuthStore()
 
   const items = useMemo(() => {
@@ -65,6 +66,11 @@ const AppSidebar = ({ collapsed }: Props) => {
   const handleNavigate = (e: any) => {
     nav(`/${e.key}`)
   }
+
+  const selectedKey = useMemo(() => {
+    const path = location.pathname.split('/')[1]
+    return path || 'home'
+  }, [location.pathname])
 
   return (
     <Sider
@@ -88,7 +94,7 @@ const AppSidebar = ({ collapsed }: Props) => {
         )}
       </div>
 
-      <Menu mode="inline" defaultSelectedKeys={['4']} items={items} onClick={handleNavigate} />
+      <Menu mode="inline" selectedKeys={[selectedKey]} items={items} onClick={handleNavigate} />
     </Sider>
   )
 }

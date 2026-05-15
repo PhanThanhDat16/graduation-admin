@@ -8,14 +8,16 @@ export interface TimeseriesBucket {
   contracts: number
   completedProjects: number
   disputes: number
-  revenueVnd: number
+  revenueContractVnd: number
+  revenueWalletVnd: number
 }
 
 export interface DashboardSummary {
   totalContracts: number
   completedProjects: number
   disputeCases: number
-  revenueVnd: number
+  revenueContractVnd: number
+  revenueWalletVnd: number
 }
 
 export interface DashboardData {
@@ -37,18 +39,30 @@ export function toActivityLineData(buckets: TimeseriesBucket[]) {
   const rows: { period: string; type: string; value: number }[] = []
   for (const b of buckets) {
     rows.push(
-      { period: b.label, type: 'Hợp đồng mới', value: b.contracts },
-      { period: b.label, type: 'Dự án hoàn thành', value: b.completedProjects },
-      { period: b.label, type: 'Tranh chấp', value: b.disputes }
+      { period: b.label, value: b.contracts, type: 'Hợp đồng mới' },
+      { period: b.label, value: b.completedProjects, type: 'Dự án hoàn thành' },
+      { period: b.label, value: b.disputes, type: 'Tranh chấp' }
     )
   }
   return rows
 }
 
 /** Convert buckets → Column chart data. */
+// export function toRevenueColumnData(buckets: TimeseriesBucket[]) {
+//   return buckets.map((b) => ({
+//     period: b.label,
+//     revenue: b.revenueVnd
+//   }))
+// }
+
 export function toRevenueColumnData(buckets: TimeseriesBucket[]) {
-  return buckets.map((b) => ({
-    period: b.label,
-    revenue: b.revenueVnd
-  }))
+  const columns: { period: string; type: string; value: number }[] = []
+  for (const b of buckets) {
+    columns.push(
+      { period: b.label, type: 'Doanh thu hợp đồng', value: b.revenueContractVnd },
+      { period: b.label, type: 'Doanh thu phí rút tiền', value: b.revenueWalletVnd },
+      { period: b.label, type: 'Tổng doanh thu', value: b.revenueContractVnd + b.revenueWalletVnd }
+    )
+  }
+  return columns
 }

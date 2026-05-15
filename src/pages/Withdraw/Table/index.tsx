@@ -1,5 +1,5 @@
 import TableAction from '@/components/common/TableAction'
-import type { WithDrawResponse } from '@/types/withdraw'
+import type { WithDrawResponse, WithDrawStatus } from '@/types/withdraw'
 import { formatVnd } from '@/utils/formatCurrency'
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { Avatar, Image, Popconfirm, Space, Table, Tag } from 'antd'
@@ -17,6 +17,13 @@ type Props = {
   onReject: (id: string) => void
 }
 
+const STATUSMAP: Record<WithDrawStatus, { color: string; label: string }> = {
+  pending: { color: 'processing', label: 'Đang chờ' },
+  approved: { color: 'success', label: 'Hoàn thành' },
+  rejected: { color: 'error', label: 'Từ chối' },
+  paid: { color: 'cyan', label: 'Đã thanh toán' }
+}
+
 const TableWithDraw = ({ withdraw, page, pageSize, loading, onPageChange, total, onApprove, onReject }: Props) => {
   const columns: ColumnType<WithDrawResponse>[] = [
     {
@@ -28,7 +35,7 @@ const TableWithDraw = ({ withdraw, page, pageSize, loading, onPageChange, total,
       title: 'Mã khách hàng',
       dataIndex: 'accountId',
       key: 'accountId',
-      render: (accountId: any) => <Text>{accountId.userId._id}</Text>
+      render: (accountId: any) => <Text>{accountId?.userId._id || '—'}</Text>
     },
     {
       title: 'Thẻ khách hàng',
@@ -71,12 +78,8 @@ const TableWithDraw = ({ withdraw, page, pageSize, loading, onPageChange, total,
       key: 'status',
       width: 150,
       align: 'center',
-      render: (status: string) => {
-        let color = 'default'
-        if (status === 'pending') color = 'processing'
-        if (status === 'completed') color = 'success'
-        if (status === 'rejected') color = 'error'
-        return <Tag color={color}>{status}</Tag>
+      render: (status: WithDrawStatus) => {
+        return <Tag color={STATUSMAP[status].color}>{STATUSMAP[status].label}</Tag>
       }
     },
     {

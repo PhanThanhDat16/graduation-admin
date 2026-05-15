@@ -34,7 +34,7 @@ const { useToken } = theme
 
 const EMPTY_DATA: DashboardData = {
   buckets: [],
-  summary: { totalContracts: 0, completedProjects: 0, disputeCases: 0, revenueVnd: 0 }
+  summary: { totalContracts: 0, completedProjects: 0, disputeCases: 0, revenueContractVnd: 0, revenueWalletVnd: 0 }
 }
 
 const HomePage = () => {
@@ -54,6 +54,7 @@ const HomePage = () => {
     setLoading(true)
     try {
       const data = await dashboardService.getDashboard(r[0].toISOString(), r[1].toISOString(), g)
+      console.log('[HomePage] Dashboard data:', data)
       setDashboardData(data)
     } catch (error) {
       console.error('[HomePage] Error fetching dashboard:', error)
@@ -91,58 +92,55 @@ const HomePage = () => {
 
   const lineConfig = useMemo(
     () => ({
-      theme: {
-        type: isDark ? 'dark' : 'light'
-      },
+      theme: { type: isDark ? 'dark' : 'light' },
       data: activityData,
       xField: 'period',
       yField: 'value',
-      seriesField: 'type',
+      colorField: 'type',
+      sizeField: 'value',
+      point: {
+        shapeField: 'square',
+        sizeField: 4
+      },
       autoFit: true,
       smooth: true,
       height: 320,
-      color: ['#1677ff', '#52c41a', '#faad14'],
-      legend: { position: 'top' as const },
-      yAxis: {
-        label: {
-          formatter: (v: string) => v
-        },
-        grid: {
-          line: {
-            style: {
-              stroke: token.colorBorderSecondary,
-              lineDash: [4, 4]
-            }
-          }
+      legend: {
+        color: {
+          position: 'top',
+          itemMarker: 'circle',
+          labelFill: token.colorText
         }
       },
-      xAxis: {
-        label: {
-          autoRotate: true,
-          fill: token.colorText
+      axis: {
+        x: { labelFill: token.colorTextSecondary },
+        y: {
+          labelFill: token.colorTextSecondary
         }
       }
     }),
-    [activityData, isDark, token.colorText, token.colorBorderSecondary]
+    [activityData, isDark, token]
   )
 
   const columnConfig = useMemo(
     () => ({
-      theme: {
-        type: isDark ? 'dark' : 'light'
-      },
+      theme: { type: isDark ? 'dark' : 'light' },
       data: revenueData,
       xField: 'period',
-      yField: 'revenue',
+      yField: 'value',
+      colorField: 'type',
+      group: true,
       height: 300,
       autoFit: true,
-      color: '#722ed1',
-      columnStyle: {
-        radius: [6, 6, 0, 0]
+      style: {
+        radiusTopLeft: 6,
+        radiusTopRight: 6
       },
-      yAxis: {
-        label: {
-          formatter: (v: string) => {
+      axis: {
+        x: { labelFill: token.colorTextSecondary },
+        y: {
+          labelFill: token.colorTextSecondary,
+          labelFormatter: (v: any) => {
             const n = Number(v)
             if (Number.isNaN(n)) return v
             if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`
@@ -150,24 +148,10 @@ const HomePage = () => {
             if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k`
             return v
           }
-        },
-        grid: {
-          line: {
-            style: {
-              stroke: token.colorBorderSecondary,
-              lineDash: [4, 4]
-            }
-          }
-        }
-      },
-      xAxis: {
-        label: {
-          autoRotate: true,
-          autoHide: true
         }
       }
     }),
-    [revenueData, isDark, token.colorBorderSecondary]
+    [revenueData, isDark, token]
   )
 
   const onGranularityChange = (val: string) => {
@@ -291,8 +275,8 @@ const HomePage = () => {
           <Col xs={24} sm={12} lg={6}>
             <Card>
               <Statistic
-                title="Doanh thu phí dịch vụ"
-                value={summary.revenueVnd}
+                title="Tổng doanh thu"
+                value={summary.revenueContractVnd + summary.revenueWalletVnd}
                 formatter={(v): ReactNode => formatVnd(Number(v))}
                 prefix={<DollarOutlined />}
                 style={{ color: token.colorInfo }}
@@ -302,14 +286,14 @@ const HomePage = () => {
         </Row>
 
         <Row gutter={[16, 16]}>
-          <Col xs={24} xl={14}>
+          <Col xs={24} xl={12}>
             <Card title="Hoạt động theo thời gian" variant="borderless">
-              <Line {...lineConfig} />
+              <Line {...lineConfig} key={`line-${isDark}`} />
             </Card>
           </Col>
-          <Col xs={24} xl={10}>
+          <Col xs={24} xl={12}>
             <Card title="Doanh thu phí dịch vụ (VND)" variant="borderless">
-              <Column {...columnConfig} />
+              <Column {...columnConfig} key={`column-${isDark}`} />
             </Card>
           </Col>
         </Row>
