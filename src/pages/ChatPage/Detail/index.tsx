@@ -14,7 +14,8 @@ import {
   Skeleton,
   message,
   Spin,
-  Image
+  Image,
+  Tag
 } from 'antd'
 import {
   ArrowLeftOutlined,
@@ -304,11 +305,14 @@ const ChatDetail = () => {
               style={{ backgroundColor: headerInfo.color }}
             />
             <div>
-              <Title level={5} style={{ margin: 0 }}>
-                {headerInfo.title}
-              </Title>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Title level={5} style={{ margin: 0 }}>
+                  {headerInfo.title}
+                </Title>
+                {conversation?.status === 'closed' && <Tag color="default">Đã đóng</Tag>}
+              </div>
               <Text type="secondary" style={{ fontSize: 12 }}>
-                {headerInfo.subtitle}
+                {conversation?.status === 'closed' ? 'Cuộc hội thoại đã đóng' : headerInfo.subtitle}
               </Text>
             </div>
           </Space>

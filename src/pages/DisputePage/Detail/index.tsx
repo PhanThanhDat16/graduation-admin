@@ -124,13 +124,26 @@ const DisputeDetail = () => {
 
   const getStatusTag = (status: string) => {
     const colors: Record<string, string> = {
+      pending_reasons: 'cyan',
+      waiting_escalation: 'gold',
       open: 'blue',
       negotiating: 'orange',
       admin_review: 'purple',
       resolved: 'green',
+      staff_cancelled: 'red',
       auto_closed: 'default'
     }
-    return <Tag color={colors[status] || 'default'}>{status.toUpperCase()}</Tag>
+    const labels: Record<string, string> = {
+      pending_reasons: 'CHỜ LÝ DO',
+      waiting_escalation: 'CHỜ CHUYỂN ADMIN',
+      open: 'MỞ',
+      negotiating: 'ĐANG THƯƠNG LƯỢNG',
+      admin_review: 'ADMIN XEM XÉT',
+      resolved: 'ĐÃ GIẢI QUYẾT',
+      staff_cancelled: 'STAFF ĐÃ HỦY',
+      auto_closed: 'TỰ ĐÓNG'
+    }
+    return <Tag color={colors[status] || 'default'}>{labels[status] || status.toUpperCase()}</Tag>
   }
 
   return (
@@ -140,10 +153,10 @@ const DisputeDetail = () => {
           Quay lại
         </Button>
         <Space>
-          {isUnassigned && dispute.status === 'open' && (
+          {dispute.status === 'open' && (isUnassigned || isAssignedToMe) && (
             <>
               <Button type="primary" icon={<UserAddOutlined />} loading={actionLoading} onClick={handleJoin}>
-                Nhận giải quyết
+                {dispute.staffDecision ? 'Tiếp tục giải quyết' : 'Nhận giải quyết'}
               </Button>
               <Button danger icon={<CloseOutlined />} onClick={() => setIsCancelModalOpen(true)}>
                 Hủy Tranh Chấp
@@ -198,11 +211,11 @@ const DisputeDetail = () => {
                 <Divider orientation="horizontal">Từ Chủ đầu tư</Divider>
                 <Paragraph>
                   <Text strong>Lý do:</Text>
-                  <div className="mt-2 p-2 rounded text-justify">{dispute.contractorReason || 'N/A'}</div>
+                  <div className="p-2 mt-2 text-justify rounded">{dispute.contractorReason || 'N/A'}</div>
                 </Paragraph>
                 <Paragraph>
                   <Text strong>Yêu cầu giải quyết:</Text>
-                  <div className="mt-2 p-2 rounded text-justify">{dispute.contractorRequestedResolution || 'N/A'}</div>
+                  <div className="p-2 mt-2 text-justify rounded">{dispute.contractorRequestedResolution || 'N/A'}</div>
                 </Paragraph>
                 <Tag color={dispute.contractorAgreed ? 'green' : 'red'}>
                   {dispute.contractorAgreed ? 'Đã đồng ý' : 'Chưa đồng ý'}
@@ -212,11 +225,11 @@ const DisputeDetail = () => {
                 <Divider orientation="horizontal">Từ Nhà thầu</Divider>
                 <Paragraph>
                   <Text strong>Lý do:</Text>
-                  <div className="mt-2 p-2 rounded text-justify">{dispute.freelancerReason || 'N/A'}</div>
+                  <div className="p-2 mt-2 text-justify rounded">{dispute.freelancerReason || 'N/A'}</div>
                 </Paragraph>
                 <Paragraph>
                   <Text strong>Yêu cầu giải quyết:</Text>
-                  <div className="mt-2 p-2 rounded text-justify">{dispute.freelancerRequestedResolution || 'N/A'}</div>
+                  <div className="p-2 mt-2 text-justify rounded">{dispute.freelancerRequestedResolution || 'N/A'}</div>
                 </Paragraph>
                 <Tag color={dispute.freelancerAgreed ? 'green' : 'red'}>
                   {dispute.freelancerAgreed ? 'Đã đồng ý' : 'Chưa đồng ý'}
@@ -225,15 +238,41 @@ const DisputeDetail = () => {
             </Row>
           </Card>
 
-          {dispute.status === 'resolved' && (
-            <Card title="Quyết định giải quyết" style={{ marginTop: 24 }}>
+          {(dispute.status === 'resolved' || dispute.staffDecision) && (
+            <Card
+              title={
+                dispute.status === 'resolved' ? 'Quyết định giải quyết' : 'Quyết định giải quyết trước đó (đã mở lại)'
+              }
+              style={{ marginTop: 24 }}
+              extra={dispute.status !== 'resolved' && dispute.staffDecision ? <Tag color="warning">Lịch sử</Tag> : null}
+            >
               <Descriptions bordered column={1}>
-                <Descriptions.Item label="Quyết định">{dispute.staffDecision}</Descriptions.Item>
-                <Descriptions.Item label="Loại giải quyết">{dispute.resolutionType}</Descriptions.Item>
-                <Descriptions.Item label="Số tiền Freelancer nhận">{dispute.freelancerAmount}</Descriptions.Item>
-                <Descriptions.Item label="Số tiền Contractor nhận">{dispute.contractorAmount}</Descriptions.Item>
+                <Descriptions.Item label="Quyết định">{dispute.staffDecision || 'N/A'}</Descriptions.Item>
+                <Descriptions.Item label="Loại giải quyết">
+                  {dispute.resolutionType ? (
+                    <Tag
+                      color={
+                        dispute.resolutionType === 'extend'
+                          ? 'blue'
+                          : dispute.resolutionType === 'cancel'
+                            ? 'red'
+                            : 'orange'
+                      }
+                    >
+                      {dispute.resolutionType.toUpperCase()}
+                    </Tag>
+                  ) : (
+                    'N/A'
+                  )}
+                </Descriptions.Item>
+                <Descriptions.Item label="Số tiền Freelancer nhận">
+                  {dispute.freelancerAmount ?? 'N/A'}
+                </Descriptions.Item>
+                <Descriptions.Item label="Số tiền Contractor nhận">
+                  {dispute.contractorAmount ?? 'N/A'}
+                </Descriptions.Item>
                 <Descriptions.Item label="Thời gian giải quyết">
-                  {dispute.resolved_at ? dayjs(dispute.resolved_at).format('DD/MM/YYYY HH:mm') : 'N/A'}
+                  {dispute.resolvedAt ? dayjs(dispute.resolvedAt).format('DD/MM/YYYY HH:mm') : 'N/A'}
                 </Descriptions.Item>
               </Descriptions>
             </Card>
@@ -265,7 +304,7 @@ const DisputeDetail = () => {
                 {dayjs(dispute.deadlineSendAdmin).format('DD/MM/YYYY HH:mm')}
               </Descriptions.Item>
               <Descriptions.Item label="Chuyển Admin lúc">
-                {dispute.escalated_at ? dayjs(dispute.escalated_at).format('DD/MM/YYYY HH:mm') : 'N/A'}
+                {dispute.escalatedAt ? dayjs(dispute.escalatedAt).format('DD/MM/YYYY HH:mm') : 'N/A'}
               </Descriptions.Item>
             </Descriptions>
           </Card>

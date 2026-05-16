@@ -1,7 +1,13 @@
 import { useEffect, useState, useCallback, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, Badge, Card, Input, List, Space, Typography, theme, Skeleton, Segmented } from 'antd'
-import { UserOutlined, FileTextOutlined, CustomerServiceOutlined, MessageOutlined } from '@ant-design/icons'
+import {
+  UserOutlined,
+  FileTextOutlined,
+  CustomerServiceOutlined,
+  MessageOutlined,
+  SafetyCertificateOutlined
+} from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { CHAT_PAGE } from '@/constants'
 import { chatService } from '@/apis/chatService'
@@ -67,6 +73,13 @@ const ChatPage = () => {
           icon: <CustomerServiceOutlined />,
           color: token.colorInfo
         }
+      case 'dispute_chat':
+        return {
+          title: `Tranh chấp: ${item._id.slice(-6)}`,
+          subtitle: 'Thảo luận tranh chấp',
+          icon: <SafetyCertificateOutlined />,
+          color: token.colorError
+        }
       case 'user_support':
         return {
           title: item.ownerId?.fullName || 'Người dùng',
@@ -120,9 +133,25 @@ const ChatPage = () => {
           }
           title={
             <div className="flex items-center justify-between">
-              <Text strong className={unreadCount > 0 ? 'text-blue-600' : ''}>
-                {displayInfo.title}
-              </Text>
+              <div className="flex items-center gap-2">
+                <Text strong className={unreadCount > 0 ? 'text-blue-600' : ''}>
+                  {displayInfo.title}
+                </Text>
+                {item.status === 'closed' && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      padding: '1px 6px',
+                      borderRadius: 10,
+                      background: '#f0f0f0',
+                      color: '#999',
+                      fontWeight: 600
+                    }}
+                  >
+                    Đã đóng
+                  </span>
+                )}
+              </div>
               <Text type="secondary" style={{ fontSize: 11 }}>
                 {dayjs(item.lastMessageAt || item.createdAt).format('HH:mm DD/MM')}
               </Text>
@@ -132,8 +161,20 @@ const ChatPage = () => {
             <div className="flex flex-col">
               <div style={{ marginBottom: 4 }}>
                 <Badge
-                  status={item.type === 'contract_chat' ? 'warning' : 'processing'}
-                  text={<span style={{ fontSize: 12, color: token.colorTextSecondary }}>{displayInfo.subtitle}</span>}
+                  status={
+                    item.status === 'closed'
+                      ? 'default'
+                      : item.type === 'contract_chat'
+                        ? 'warning'
+                        : item.type === 'dispute_chat'
+                          ? 'error'
+                          : 'processing'
+                  }
+                  text={
+                    <span style={{ fontSize: 12, color: token.colorTextSecondary }}>
+                      {item.status === 'closed' ? 'Đã đóng' : displayInfo.subtitle}
+                    </span>
+                  }
                 />
               </div>
               <Text
@@ -167,6 +208,7 @@ const ChatPage = () => {
                 options={[
                   { label: 'Thành viên', value: 'user_support' },
                   { label: 'Hợp đồng', value: 'contract_chat' },
+                  { label: 'Tranh chấp', value: 'dispute_chat' },
                   { label: 'Khách', value: 'guest_support' }
                 ]}
                 value={selectedType}
