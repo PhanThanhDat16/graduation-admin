@@ -10,8 +10,8 @@ export const authService = {
 
   refresh: async () => await axiosInstance.post('/auth/refresh-token'),
 
-  forgotPassword: async (email: string) => await axiosInstance.post('/auth/users/forgot', { email }),
+  forgotPassword: async (email: string) => await axiosInstance.post('/auth/password/forgot', { email }),
 
-  verifyPassword: async (param: { email: string; otp: string }) =>
-    await axiosInstance.post('/auth/users/verify', { param })
+  verifyForgotPassword: async (param: { email: string; otp: string }) =>
+    await axiosInstance.post('/auth/password/verify-otp', param)
 }

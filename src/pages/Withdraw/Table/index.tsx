@@ -5,6 +5,7 @@ import { CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { Avatar, Image, Popconfirm, Space, Table, Tag } from 'antd'
 import type { ColumnType } from 'antd/es/table'
 import Text from 'antd/es/typography/Text'
+import dayjs from 'dayjs'
 
 type Props = {
   withdraw: WithDrawResponse[]
@@ -27,7 +28,7 @@ const STATUSMAP: Record<WithDrawStatus, { color: string; label: string }> = {
 const TableWithDraw = ({ withdraw, page, pageSize, loading, onPageChange, total, onApprove, onReject }: Props) => {
   const columns: ColumnType<WithDrawResponse>[] = [
     {
-      title: 'Mã giao dịch',
+      title: 'Mã yêu cầu',
       dataIndex: '_id',
       key: '_id'
     },
@@ -38,7 +39,7 @@ const TableWithDraw = ({ withdraw, page, pageSize, loading, onPageChange, total,
       render: (accountId: any) => <Text>{accountId?.userId._id || '—'}</Text>
     },
     {
-      title: 'Thẻ khách hàng',
+      title: 'Thông tin tài khoản',
       dataIndex: 'accountId',
       key: 'accountId',
       render: (accountId: any) => (
@@ -46,7 +47,13 @@ const TableWithDraw = ({ withdraw, page, pageSize, loading, onPageChange, total,
           <Avatar src={accountId?.userId.avatar} />
           <div>
             <div style={{ fontWeight: 'bold' }}>{accountId?.accountName || '—'}</div>
-            <Text type="secondary">{accountId?.accountNumber || '—'}</Text>
+            <div>
+              <Text type="secondary">{accountId?.accountNumber || '—'}</Text>
+            </div>
+            <Space>
+              <Image width={40} src={accountId?.logo} />
+              <Text>{accountId?.bankShortName}</Text>
+            </Space>
           </div>
         </Space>
       )
@@ -60,17 +67,12 @@ const TableWithDraw = ({ withdraw, page, pageSize, loading, onPageChange, total,
       render: (amount: number) => <Text strong>{formatVnd(amount)}</Text>
     },
     {
-      title: 'Ngân hàng',
-      dataIndex: 'accountId',
-      key: 'accountId',
+      title: 'Ngày cập nhật',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
       align: 'center',
       width: 200,
-      render: (accountId: any) => (
-        <Space>
-          <Image width={40} src={accountId?.logo} />
-          <Text>{accountId?.bankShortName}</Text>
-        </Space>
-      )
+      render: (date: any) => <Text>{dayjs(date).format('DD/MM/YYYY HH:mm:ss')}</Text>
     },
     {
       title: 'Trạng thái',

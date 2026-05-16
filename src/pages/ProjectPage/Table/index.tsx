@@ -51,7 +51,7 @@ const TableProjects = ({ projects, page, pageSize, loading, onPageChange, total,
       dataIndex: 'likes',
       key: 'likes',
       width: 100,
-      align: 'right',
+      align: 'center',
       render: (number: number) => {
         return number.toLocaleString('vi-VN')
       }

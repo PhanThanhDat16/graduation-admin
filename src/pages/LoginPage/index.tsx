@@ -1,6 +1,6 @@
 import { Button, Checkbox, Form, Input, theme, Row, Col } from 'antd'
 import { LockOutlined, UserOutlined, BarChartOutlined } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useEffect } from 'react'
 
@@ -140,13 +140,13 @@ const LogInPage = () => {
               <Form.Item key={'remember'} name="remember" valuePropName="checked" noStyle>
                 <Checkbox style={{ color: token.colorText }}>Remember me</Checkbox>
               </Form.Item>
-              <a
-                href="#"
+              <Link
+                to={'/forgotpassword'}
                 style={{ color: token.colorPrimary }}
                 className="hover:opacity-80 font-medium transition-opacity"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             <Form.Item>

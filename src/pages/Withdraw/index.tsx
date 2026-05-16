@@ -11,7 +11,7 @@ const { Title, Text } = Typography
 const WithDrawFilters: FilterConfig[] = [
   {
     type: 'input',
-    name: 'accountId',
+    name: 'userId',
     placeholder: 'Mã khách hàng',
     label: 'Mã khách hàng'
   },

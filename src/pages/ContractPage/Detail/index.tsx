@@ -19,6 +19,7 @@ import {
 import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons'
 import { contractService } from '@/apis/contractService'
 import type { ContractResponse } from '@/types/contract'
+import dayjs from 'dayjs'
 
 const { Title, Text } = Typography
 const { useToken } = theme
@@ -169,6 +170,9 @@ const ContractDetail = () => {
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       ({contract.freelancerId._id})
                     </Text>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Ngày tạo">
+                    {dayjs(contract.createdAt).format('DD/MM/YYYY HH:mm:ss') || 'N/A'}
                   </Descriptions.Item>
                 </Descriptions>
               </Card>

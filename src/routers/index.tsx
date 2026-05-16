@@ -16,7 +16,8 @@ import {
   TRANSACTION_PAGE,
   WALLET_PAGE,
   USERDETAIL_PAGE,
-  WITHDRAW_PAGE
+  WITHDRAW_PAGE,
+  FORGOTPASSWORD_PAGE
 } from '../constants'
 import NotFoundPage from '../pages/NotFoundPage'
 import PrivateRoute from './PrivateRoute'
@@ -46,6 +47,7 @@ import ProfilePage from '../pages/ProfilePage'
 import LoginPage from '@/pages/LoginPage'
 import UserDetail from '@/pages/UserDetailPage'
 import WithDrawPage from '@/pages/Withdraw'
+import ForgotPassword from '@/pages/ForgotPassword'
 
 const AppRouters = () => {
   return (
@@ -86,7 +88,7 @@ const AppRouters = () => {
 
         <Route element={<PrivateRouteLogin />}>
           <Route path={LOGIN_PAGE} element={<LoginPage />} />
-          {/* login page */}
+          <Route path={FORGOTPASSWORD_PAGE} element={<ForgotPassword />} />
         </Route>
         <Route path="*" element={<NotFoundPage />}></Route>
       </Routes>
