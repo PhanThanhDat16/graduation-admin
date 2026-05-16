@@ -30,9 +30,9 @@ export type DisputeResponse = {
   staffDecision: string
   staffId?: { _id: string; fullName: string; avatar: string }
   deadlineSendAdmin: string
-  escalated_at: string
+  escalatedAt: string
   createdAt: string
-  resolved_at: string
+  resolvedAt: string
 }
 
 export type DisputeListResponse = {

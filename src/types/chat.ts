@@ -1,6 +1,6 @@
 import type { Pagination } from '.'
 
-export type TypeConversation = 'guest_support' | 'user_support' | 'contract_chat'
+export type TypeConversation = 'guest_support' | 'user_support' | 'contract_chat' | 'dispute_chat'
 
 export type ConversationResponse = {
   _id: string
@@ -14,6 +14,7 @@ export type ConversationResponse = {
   lastMessage?: string
   lastMessageAt?: string
   lastSenderId?: { _id: string; fullName: string; avatar: string }
+  status?: 'active' | 'closed'
   createdAt: string
 }
 
