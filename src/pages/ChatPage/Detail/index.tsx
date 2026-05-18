@@ -464,7 +464,7 @@ const ChatDetail = () => {
                 icon={<SendOutlined />}
                 size="large"
                 onClick={handleSendMessage}
-                disabled={!inputValue.trim() || sending}
+                disabled={!inputValue.trim() || sending || inputValue.length > 500}
                 loading={sending}
               />
             </Col>
