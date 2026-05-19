@@ -320,7 +320,12 @@ const DisputeDetail = () => {
         confirmLoading={actionLoading}
         width={600}
       >
-        <Form form={resolveForm} layout="vertical" onFinish={handleResolve} initialValues={{ resolutionType: 'split' }}>
+        <Form
+          form={resolveForm}
+          layout="vertical"
+          onFinish={handleResolve}
+          initialValues={{ resolutionType: 'extend' }}
+        >
           <Form.Item
             name="decision"
             label="Nội dung quyết định"
@@ -334,10 +339,10 @@ const DisputeDetail = () => {
             label="Loại giải quyết"
             rules={[{ required: true, message: 'Vui lòng chọn loại giải quyết' }]}
           >
-            <Select>
+            <Select defaultValue={'extend'}>
               <Select.Option value="extend">Gia hạn</Select.Option>
               <Select.Option value="cancel">Hủy hợp đồng</Select.Option>
-              <Select.Option value="split">Chia tiền</Select.Option>
+              {/* <Select.Option value="split">Chia tiền</Select.Option> */}
             </Select>
           </Form.Item>
 
